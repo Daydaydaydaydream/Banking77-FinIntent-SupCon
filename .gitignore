@@ -216,3 +216,7 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Project outputs (generated datasets & models)
+outputs/
+.DS_Store
