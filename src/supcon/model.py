@@ -89,7 +89,11 @@ class SupConModel(nn.Module):
         hidden_size = config.hidden_size
         proj_hidden = proj_hidden or hidden_size
 
-        self.encoder = AutoModel.from_pretrained(model_name)
+        # Use the eager attention implementation: PyTorch's MPS backend does not
+        # support dropout inside scaled_dot_product_attention, which BERT applies
+        # during training. Eager attention implements dropout explicitly and runs
+        # correctly on Apple Silicon.
+        self.encoder = AutoModel.from_pretrained(model_name, attn_implementation="eager")
         self.projection_head = ProjectionHead(hidden_size, proj_hidden, proj_dim, dropout)
         self.classification_head = ClassificationHead(
             hidden_size, num_classes, classifier_hidden, dropout

@@ -63,7 +63,7 @@ def run(split_name: str, verbose: bool = False) -> Dict[str, float]:
 
     tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
     model = AutoModelForSequenceClassification.from_pretrained(
-        MODEL_NAME, num_labels=NUM_CLASSES
+        MODEL_NAME, num_labels=NUM_CLASSES, attn_implementation="eager"
     ).to(device)
 
     def preprocess(df: pd.DataFrame) -> Dataset:
