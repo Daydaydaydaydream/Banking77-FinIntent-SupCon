@@ -30,8 +30,19 @@ MAX_LEN = 64
 
 # Per-setting training hyper-parameters. Few-shot settings use more epochs and
 # a slightly higher learning rate to compensate for the small training set.
+#
+# ``full``: increased to 10 epochs with a 5% stratified validation split so the
+# best checkpoint is selected by validation Macro-F1 (load_best_model_at_end)
+# instead of taking the last epoch, which overfits; lifts Macro-F1 towards the
+# ~0.93 literature level (previous 5-epoch run: 0.8811).
 _BERT_CONFIGS: Dict[str, Dict] = {
-    "full": {"epochs": 5, "lr": 2e-5, "batch": 32},
+    "full": {
+        "epochs": 10,
+        "lr": 3e-5,
+        "batch": 32,
+        "val_ratio": 0.05,
+        "warmup_ratio": 0.1,
+    },
     "5shot": {"epochs": 20, "lr": 5e-5, "batch": 16},
     "10shot": {"epochs": 15, "lr": 5e-5, "batch": 16},
     "20shot": {"epochs": 10, "lr": 5e-5, "batch": 16},
@@ -73,8 +84,30 @@ def run(split_name: str, verbose: bool = False) -> Dict[str, float]:
         ds.set_format("torch", columns=["input_ids", "attention_mask", "labels"])
         return ds
 
-    train_ds = preprocess(train)
+    # Optional stratified validation split (only "full" configures it) so that
+    # the best checkpoint is selected by validation Macro-F1 rather than using
+    # the last epoch, which can overfit as training continues.
     test_ds = preprocess(test)
+    val_ds = None
+    compute_metrics = None
+    if cfg.get("val_ratio"):
+        from sklearn.model_selection import train_test_split
+
+        train_df, val_df = train_test_split(
+            train,
+            test_size=cfg["val_ratio"],
+            stratify=train["label_id"],
+            random_state=SEED,
+        )
+        train_ds = preprocess(train_df)
+        val_ds = preprocess(val_df)
+
+        def compute_metrics(eval_pred) -> Dict[str, float]:
+            y_true = np.asarray(eval_pred.label_ids)
+            y_pred = np.argmax(eval_pred.predictions, axis=1)
+            return {"macro_f1": macro_f1(y_true, y_pred)}
+    else:
+        train_ds = preprocess(train)
 
     args = TrainingArguments(
         output_dir=str(MODEL_DIR / f"bert_{split_name}"),
@@ -83,9 +116,12 @@ def run(split_name: str, verbose: bool = False) -> Dict[str, float]:
         per_device_eval_batch_size=cfg["batch"],
         learning_rate=cfg["lr"],
         weight_decay=0.01,
-        warmup_ratio=0.06,
-        eval_strategy="no",
-        save_strategy="no",
+        warmup_ratio=cfg.get("warmup_ratio", 0.06),
+        eval_strategy="epoch" if val_ds is not None else "no",
+        save_strategy="epoch" if val_ds is not None else "no",
+        load_best_model_at_end=val_ds is not None,
+        metric_for_best_model="macro_f1",
+        save_total_limit=2,
         logging_strategy="no",
         seed=SEED,
         remove_unused_columns=True,
@@ -93,7 +129,13 @@ def run(split_name: str, verbose: bool = False) -> Dict[str, float]:
         disable_tqdm=not verbose,
     )
 
-    trainer = Trainer(model=model, args=args, train_dataset=train_ds)
+    trainer = Trainer(
+        model=model,
+        args=args,
+        train_dataset=train_ds,
+        eval_dataset=val_ds,
+        compute_metrics=compute_metrics,
+    )
     trainer.train()
 
     preds = trainer.predict(test_ds).predictions
