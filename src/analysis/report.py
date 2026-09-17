@@ -1,153 +1,212 @@
 """Final experiment report generation.
 
-Reads the persisted baseline and ablation results and writes a Markdown report
-summarising Macro-F1, per-class F1 on the confusable intent pairs, and the
-generated figures.  The report is objective and data-first: it states the
-experimental setup and reports measured numbers without interpretive
-embellishment.
+Aggregates the stage-A artefact tree (``outputs/runs/<method>/<setting>/seed<k>``)
+into ``report.md``:
+
+* Macro-F1 as ``mean ± std`` across seeds (never a best-of selection);
+* paired bootstrap significance against the strongest baseline;
+* per-class F1 on the confusable intent pairs defined in the project plan;
+* pointers to the generated figures.
+
+The report is data-first: it states the setup and reports measured numbers
+without interpretive embellishment.
 """
 
 from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Sequence
 
-from config import PROJECT_ROOT, RESULT_DIR, ensure_dirs
+import numpy as np
+import pandas as pd
+
 from analysis.visualize import CONFUSABLE_PAIRS
+from config import PROJECT_ROOT, SEEDS, SETTINGS, ensure_dirs, run_dir
+from utils.metrics import paired_bootstrap_macro_f1
 
 OUTPUT_REPORT = PROJECT_ROOT / "report.md"
 
-SETTINGS = ["full", "5shot", "10shot", "20shot"]
-BASELINE_METHODS = [
-    ("tfidf_svm", "TF-IDF + LinearSVC"),
-    ("bert_ft", "BERT 微调"),
-    ("setfit", "SetFit"),
-]
-ABLATION_METHODS = [
-    ("baseline_bert", "Baseline (BERT 微调)"),
-    ("supcon", "Baseline + SupCon"),
-    ("supcon_hn", "Baseline + SupCon + 难负例挖掘"),
-]
+METHOD_LABELS: Dict[str, str] = {
+    "tfidf_svm": "TF-IDF + LinearSVC",
+    "bert_ft": "BERT 微调",
+    "setfit": "SetFit",
+    "supcon": "SupCon",
+    "supcon_hn": "SupCon + 难负例",
+}
+
+BASELINE_FOR_SIGNIFICANCE = "bert_ft"
 
 
-def _load_json(path: Path) -> Optional[dict]:
+def _load_metrics(method: str, setting: str, seed: int) -> Optional[dict]:
+    path = run_dir(method, setting, seed) / "metrics.json"
     if not path.exists():
         return None
     with open(path, "r", encoding="utf-8") as f:
         return json.load(f)
 
 
-def _fmt(v: Optional[float]) -> str:
-    return "—" if v is None else f"{v:.4f}"
+def _load_predictions(method: str, setting: str, seed: int) -> Optional[pd.DataFrame]:
+    path = run_dir(method, setting, seed) / "predictions.csv"
+    if not path.exists():
+        return None
+    return pd.read_csv(path)
 
 
-def _baseline_table(baseline: dict) -> List[str]:
-    """Build the baseline Macro-F1 comparison table."""
-    header = "| 方法 | " + " | ".join(SETTINGS) + " |"
-    sep = "|---|" + "|".join(["---"] * len(SETTINGS)) + "|"
+def _cell(method: str, setting: str, seeds: Sequence[int]) -> str:
+    scores = [
+        _load_metrics(method, setting, s)["macro_f1"]
+        for s in seeds
+        if _load_metrics(method, setting, s) is not None
+    ]
+    if not scores:
+        return "—"
+    if len(scores) == 1:
+        return f"{scores[0]:.4f}"
+    return f"{np.mean(scores):.4f} ± {np.std(scores):.4f}"
+
+
+def _main_table(methods: Sequence[str], settings: Sequence[str], seeds: Sequence[int]) -> List[str]:
+    header = "| 方法 | " + " | ".join(settings) + " |"
+    sep = "|---|" + "|".join(["---"] * len(settings)) + "|"
     rows = [header, sep]
-    for key, label in BASELINE_METHODS:
-        by_setting = baseline.get(key, {})
-        cells = [_fmt(by_setting.get(s)) for s in SETTINGS]
-        rows.append(f"| {label} | " + " | ".join(cells) + " |")
+    for method in methods:
+        label = METHOD_LABELS.get(method, method)
+        rows.append(f"| {label} | " + " | ".join(_cell(method, s, seeds) for s in settings) + " |")
     return rows
 
 
-def _ablation_table(ablation: dict) -> List[str]:
-    """Build the ablation Macro-F1 comparison table."""
-    header = "| 方法 | " + " | ".join(SETTINGS) + " |"
-    sep = "|---|" + "|".join(["---"] * len(SETTINGS)) + "|"
-    rows = [header, sep]
-    for key, label in ABLATION_METHODS:
-        cells = []
-        for s in SETTINGS:
-            entry = ablation.get(s, {}).get(key, {})
-            cells.append(_fmt(entry.get("macro_f1")))
-        rows.append(f"| {label} | " + " | ".join(cells) + " |")
-    return rows
+def _significance_rows(
+    methods: Sequence[str], settings: Sequence[str], seed: int, n_resamples: int
+) -> List[str]:
+    """Paired bootstrap of each method against the BERT baseline."""
+    header = "| 方法 | 设置 | ΔMacro-F1 | 95% CI | p 值 |"
+    rows = [header, "|---|---|---|---|---|"]
+    any_result = False
+
+    base_cache: Dict[str, Optional[pd.DataFrame]] = {}
+    for setting in settings:
+        base_cache[setting] = _load_predictions(BASELINE_FOR_SIGNIFICANCE, setting, seed)
+
+    for method in methods:
+        if method == BASELINE_FOR_SIGNIFICANCE:
+            continue
+        for setting in settings:
+            base = base_cache.get(setting)
+            preds = _load_predictions(method, setting, seed)
+            if base is None or preds is None:
+                continue
+            if not np.array_equal(base["y_true"].to_numpy(), preds["y_true"].to_numpy()):
+                continue
+            result = paired_bootstrap_macro_f1(
+                base["y_true"].to_numpy(),
+                preds["y_pred"].to_numpy(),
+                base["y_pred"].to_numpy(),
+                n_resamples=n_resamples,
+                seed=seed,
+            )
+            any_result = True
+            rows.append(
+                f"| {METHOD_LABELS.get(method, method)} | {setting} | "
+                f"{result['mean_delta']:+.4f} | "
+                f"[{result['ci_low']:+.4f}, {result['ci_high']:+.4f}] | "
+                f"{result['p_value']:.4f} |"
+            )
+
+    return rows if any_result else []
 
 
-def _confusable_table(ablation: dict, setting: str = "full") -> List[str]:
-    """Build a per-class F1 table over the confusable intent pairs.
-
-    Each confusable pair contributes two rows (one per intent).  The table
-    reports the per-class F1 of each method for those intents, highlighting
-    whether SupCon / hard-negative weighting improves separation of
-    semantically overlapping classes.
-    """
-    header = "| 意图 | " + " | ".join(label for _, label in ABLATION_METHODS) + " |"
-    sep = "|---|" + "|".join(["---"] * len(ABLATION_METHODS)) + "|"
-    rows = [header, sep]
-
-    by_method = {
-        key: ablation.get(setting, {}).get(key, {}).get("per_class_f1", {})
-        for key, _ in ABLATION_METHODS
-    }
-
+def _confusable_rows(
+    methods: Sequence[str], setting: str, seed: int
+) -> List[str]:
+    """Per-class F1 for the confusable intent pairs, averaged over seeds."""
     intents: List[str] = []
     for a, b in CONFUSABLE_PAIRS:
-        if a not in intents:
-            intents.append(a)
-        if b not in intents:
-            intents.append(b)
+        for intent in (a, b):
+            if intent not in intents:
+                intents.append(intent)
+
+    header = "| 意图 | " + " | ".join(METHOD_LABELS.get(m, m) for m in methods) + " |"
+    rows = [header, "|---|" + "|".join(["---"] * len(methods)) + "|"]
 
     for intent in intents:
-        cells = [_fmt(by_method[key].get(intent)) for key, _ in ABLATION_METHODS]
+        cells = []
+        for method in methods:
+            block = _load_metrics(method, setting, seed)
+            if block is None:
+                cells.append("—")
+                continue
+            entry = block.get("per_class", {}).get(intent)
+            cells.append("—" if entry is None else f"{entry['f1']:.4f}")
         rows.append(f"| {intent} | " + " | ".join(cells) + " |")
     return rows
 
 
-def generate_report() -> Path:
+def generate_report(
+    methods: Sequence[str] = tuple(METHOD_LABELS),
+    settings: Sequence[str] = tuple(SETTINGS),
+    seeds: Sequence[int] = tuple(SEEDS),
+    n_resamples: int = 1000,
+) -> Path:
     """Generate ``report.md`` and return its path."""
     ensure_dirs()
-    baseline = _load_json(RESULT_DIR / "results.json") or {}
-    ablation = _load_json(RESULT_DIR / "ablation_results.json") or {}
+    seed0 = seeds[0]
 
     sections: List[str] = []
-
     sections.append("# Banking77 意图分类实验报告\n")
 
     sections.append("## 1. 实验设置\n")
     sections.append(
-        "- 数据集：BANKING77（训练 10,003 / 测试 3,080，77 个意图类别）。\n"
-        "- 少样本设置：每类 5 / 10 / 20 条标注（固定随机种子 42）。\n"
-        "- 主指标：Macro-F1；辅助指标：per-class F1、混淆矩阵。\n"
-        "- 骨干模型：bert-base-uncased（序列长度 64）。\n"
+        "- 数据集：BANKING77（官方训练 10,003 / 测试 3,080，77 个意图类别）。\n"
+        "- 数据划分：从官方训练集中**分层切出**训练池 9,000 与验证集 1,003；"
+        "测试集保持官方划分并冻结，仅用于最终评估。\n"
+        f"- 少样本设置：每类 5 / 10 / 20 条标注，抽样种子 {list(seeds)}。\n"
+        "- 模型选择：统一以验证集 Macro-F1 选取 checkpoint，不使用测试集选点。\n"
+        "- 主指标：Macro-F1；辅助指标：Accuracy、Micro-F1、per-class P/R/F1。\n"
+        "- 骨干模型：bert-base-uncased（序列长度 64）；SetFit 使用 all-MiniLM-L6-v2。\n"
     )
 
-    sections.append("## 2. Baseline 结果\n")
-    sections.append("三组基线的测试集 Macro-F1 如下。\n")
-    sections.extend(_baseline_table(baseline))
+    sections.append("## 2. 主结果（测试集 Macro-F1）\n")
+    sections.append(
+        f"每个单元格为 {len(seeds)} 个种子的 mean ± std；单种子时仅给出均值。\n"
+    )
+    sections.extend(_main_table(methods, settings, seeds))
     sections.append("")
 
-    sections.append("## 3. 消融实验结果\n")
+    sections.append("## 3. 显著性检验\n")
     sections.append(
-        "在 BERT 骨干上对比三组设置：直接微调（Baseline）、引入监督对比学习"
-        "（SupCon）、进一步叠加难负例挖掘（SupCon + HN）。测试集 Macro-F1 如下。\n"
+        f"以 {METHOD_LABELS[BASELINE_FOR_SIGNIFICANCE]} 为对照组，对测试集做分层 paired bootstrap"
+        f"（{n_resamples} 次重采样，种子 {seed0}）。ΔMacro-F1 为「方法 − 对照」。\n"
     )
-    sections.extend(_ablation_table(ablation))
+    sig_rows = _significance_rows(methods, settings, seed0, n_resamples)
+    if sig_rows:
+        sections.extend(sig_rows)
+    else:
+        sections.append("_暂无可用的预测文件，无法计算显著性。_")
     sections.append("")
 
     sections.append("## 4. 易混淆意图对的 per-class F1\n")
     sections.append(
-        "下表列出语义高度重叠的意图对（见项目计划）在三组方法下的 per-class F1，"
-        "用于观察性能提升是否集中在易混淆类别上。\n"
+        f"下表为 `{settings[0]}` 设置、种子 {seed0} 下，语义高度重叠的意图对的 per-class F1。\n"
     )
-    sections.extend(_confusable_table(ablation))
+    sections.extend(_confusable_rows(methods, settings[0], seed0))
     sections.append("")
 
     sections.append("## 5. 可视化\n")
     sections.append(
-        "以下图表由分析脚本生成，存放于 `outputs/figures/`：\n\n"
-        "- 混淆矩阵：`confusion_<method>_full.png`\n"
-        "- 易混淆意图对子矩阵：`confusable_pairs_full.png`\n"
-        "- t-SNE 特征投影：`tsne_<method>_full.png`\n"
+        "图表由 `src/analysis/visualize.py` 生成，存放于 `outputs/figures/`：\n\n"
+        "- 混淆矩阵：`confusion_<method>_<setting>_seed<k>.png`\n"
+        "- 易混淆意图对子矩阵：`confusable_pairs_<setting>_seed<k>.png`\n"
+        "- 置信度分布：`confidence_<setting>_seed<k>.png`\n"
+        "- t-SNE 特征投影（仅对保存了 embedding 的方法）：`tsne_<method>_<setting>_seed<k>.png`\n"
     )
 
     sections.append("## 6. 结论与局限\n")
     sections.append(
-        "结论与局限基于第 2、3、4 节的数值结果归纳，应随实验结果完成后补充。\n"
+        "结论应基于第 2、3、4 节的数值归纳。已知局限：\n\n"
+        "- 少样本抽取方差通常大于训练方差，需在报告中单独说明；\n"
+        "- 验证集（1,003 条）在 few-shot 设置下大于训练集，checkpoint 选择受此影响；\n"
+        "- TF-IDF 的置信度为 decision_function 上的 softmax 近似，未做概率校准。\n"
     )
 
     report = "\n".join(sections)

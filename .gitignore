@@ -217,8 +217,21 @@ __marimo__/
 # Streamlit
 .streamlit/secrets.toml
 
-# Project outputs (generated datasets & models)
-outputs/
+# Project outputs
+# Datasets, weights, embeddings and figures are large and regenerable.
+# Run-level metrics.json / predictions.csv / config.json / env.json are the
+# experiment record, so outputs/runs stays tracked apart from the excluded
+# per-run sub-paths below. Note: ignoring the whole outputs/ directory would
+# make the re-inclusion impossible, since git never descends into it.
+outputs/datasets/
+outputs/datasets_dedup/
+outputs/models/
+outputs/analysis/
+outputs/figures/
+outputs/results/
+outputs/runs/*/*/seed*/model/
+outputs/runs/*/*/seed*/embeddings.npy
+outputs/runs/*/*/seed*/embeddings.npz
 .DS_Store
 
 #Agent
