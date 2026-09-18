@@ -1,0 +1,15 @@
+# Data and evaluation
+numpy>=1.26,<3
+pandas>=2.2,<4
+scipy>=1.13,<2
+scikit-learn>=1.5,<2
+matplotlib>=3.9,<4
+joblib>=1.4,<2
+
+# BERT and SetFit baselines
+torch>=2.2,<3
+transformers>=4.48,<5
+accelerate>=1.2,<2
+datasets>=3.2,<4
+sentence-transformers>=3.4,<4
+setfit==1.1.3
