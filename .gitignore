@@ -78,6 +78,7 @@ lightning_logs/
 events.out.tfevents.*
 
 # Model/checkpoint files are large and reproducible from configs.
+models/
 *.pt
 *.pth
 *.ckpt
