@@ -18,6 +18,40 @@ from utils.seed import seed_everything, select_torch_device
 METHOD = "setfit"
 
 
+def training_arguments_kwargs(
+    *,
+    output_dir: str,
+    batch_size: int,
+    epochs: int,
+    num_iterations: int,
+    learning_rate: float,
+    max_length: int,
+    seed: int,
+) -> dict[str, Any]:
+    """Build SetFit arguments with a metric available during embedding training."""
+
+    return {
+        "output_dir": output_dir,
+        "batch_size": batch_size,
+        "num_epochs": epochs,
+        "num_iterations": num_iterations,
+        "body_learning_rate": learning_rate,
+        "max_length": max_length,
+        "seed": seed,
+        "eval_strategy": "epoch",
+        "save_strategy": "epoch",
+        "logging_strategy": "epoch",
+        "load_best_model_at_end": True,
+        # SetFit evaluates the sentence-transformer phase before fitting its
+        # classifier head. At this point it exposes eval_embedding_loss, not
+        # the downstream classification metrics returned by `metric` below.
+        "metric_for_best_model": "embedding_loss",
+        "greater_is_better": False,
+        "save_total_limit": 1,
+        "report_to": "none",
+    }
+
+
 def run(
     setting: str,
     seed: int,
@@ -86,21 +120,15 @@ def run(
         }
 
     training_args = TrainingArguments(
-        output_dir=str(artifacts.model_dir / "checkpoints"),
-        batch_size=batch_size,
-        num_epochs=epochs,
-        num_iterations=actual_iterations,
-        body_learning_rate=learning_rate,
-        max_length=max_length,
-        seed=seed,
-        eval_strategy="epoch",
-        save_strategy="epoch",
-        logging_strategy="epoch",
-        load_best_model_at_end=True,
-        metric_for_best_model="macro_f1",
-        greater_is_better=True,
-        save_total_limit=1,
-        report_to="none",
+        **training_arguments_kwargs(
+            output_dir=str(artifacts.model_dir / "checkpoints"),
+            batch_size=batch_size,
+            epochs=epochs,
+            num_iterations=actual_iterations,
+            learning_rate=learning_rate,
+            max_length=max_length,
+            seed=seed,
+        )
     )
     trainer = Trainer(
         model=model,

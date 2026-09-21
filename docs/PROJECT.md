@@ -120,6 +120,6 @@ t-SNE 等表示可视化只作为辅助证据，不替代定量结果。
 
 ## 8. 当前状态与文档导航
 
-当前仓库保留了 BANKING77 原始数据与项目文档；实验代码、依赖清单和可核验结果产物目前不在仓库中。因此，旧文档中曾记录的单次实验数字不作为当前项目结论，后续需按统一协议重新实现并复跑。
+当前仓库已经完成数据准备、EDA、统一基线代码与首次单随机种子运行。TF-IDF 已形成稳定基线，BERT 少样本运行出现预测塌缩，SetFit 尚未生成完整结果。首次结果属于流程验证与问题定位，不作为最终多随机种子结论。
 
-具体任务顺序、验收标准和产物规范见 [DEVELOPMENT_PLAN.md](DEVELOPMENT_PLAN.md)。
+具体任务顺序、验收标准和产物规范见 [DEVELOPMENT_PLAN.md](DEVELOPMENT_PLAN.md)，首次实验分析见 [FIRST_EXPERIMENT_REPORT.md](FIRST_EXPERIMENT_REPORT.md)。

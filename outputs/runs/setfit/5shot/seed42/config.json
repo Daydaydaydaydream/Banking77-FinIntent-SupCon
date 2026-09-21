@@ -1,0 +1,21 @@
+{
+  "method": "setfit",
+  "setting": "5shot",
+  "seed": 42,
+  "model_name": "sentence-transformers/all-MiniLM-L6-v2",
+  "train_rows": 385,
+  "validation_rows": 1003,
+  "test_rows": 3080,
+  "epochs": 1,
+  "batch_size": 16,
+  "learning_rate": 2e-05,
+  "num_iterations": 20,
+  "max_length": 64,
+  "device": "mps",
+  "local_files_only": true,
+  "seed_info": {
+    "seed": 42,
+    "torch_available": true,
+    "torch_version": "2.14.0"
+  }
+}

@@ -8,10 +8,11 @@
 
 - [项目介绍](docs/PROJECT.md)：研究问题、数据集、方法范围、实验设计与预期产出。
 - [开发规划](docs/DEVELOPMENT_PLAN.md)：实施阶段、实验协议、验收标准与范围边界。
+- [第一次基线实验初步报告](docs/FIRST_EXPERIMENT_REPORT.md)：首次运行结果、异常分析与下一轮解决方案。
 
 ## 当前状态
 
-仓库已完成 BANKING77 EDA、可复现的训练/验证划分，以及 TF-IDF + SVM、BERT、SetFit 三组 baseline。TF-IDF 已在四种数据预算下完成单种子验证；BERT 与 SetFit 需要安装深度学习依赖后运行。
+仓库已完成 BANKING77 EDA、可复现的训练/验证划分，以及 TF-IDF + SVM、BERT、SetFit 三组 baseline。TF-IDF 与 BERT 已完成四种数据预算的 `seed=42` 首次运行；其中 BERT 少样本结果出现预测塌缩，需要调整训练预算后重跑。SetFit 尚未生成完整指标。当前结果与处理建议见 [第一次基线实验初步报告](docs/FIRST_EXPERIMENT_REPORT.md)。
 
 当前数据产物：
 
@@ -117,3 +118,24 @@ outputs/runs/<method>/<setting>/seed<seed>/
 PYTHONPATH=src python -m unittest discover -s tests -v
 python -m compileall -q src tests
 ```
+
+## 可视化实验结果
+
+结果可视化模块会自动发现包含 `metrics.json` 的完整运行，并输出总体指标对比、逐类 F1、归一化混淆矩阵、高频双向混淆类别对、预测类别分布和深度模型训练曲线。
+
+```bash
+# 汇总所有已完成实验，默认读取测试集结果
+PYTHONPATH=src python -m analysis.visualize_results
+
+# 只比较 full 设置下的 TF-IDF 与 BERT
+PYTHONPATH=src python -m analysis.visualize_results \
+  --method tfidf_svm --method bert \
+  --setting full
+
+# 查看验证集结果，并指定随机种子与输出目录
+PYTHONPATH=src python -m analysis.visualize_results \
+  --split validation --seed 42 \
+  --output-dir outputs/figures/validation_results
+```
+
+默认输出到 `outputs/figures/model_results/`。其中 `test_metrics_summary.csv` 可用于复核跨运行指标，`top_confusions_*.csv` 保存每次运行最常见的双向混淆类别对，`visualization_manifest.json` 记录本次调用选择的运行和生成文件。

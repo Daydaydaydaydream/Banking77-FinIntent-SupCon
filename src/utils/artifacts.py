@@ -100,7 +100,7 @@ class RunArtifacts:
         y_pred = ranking[:, 0]
         output = self.path / "predictions.csv"
         with output.open("w", newline="", encoding="utf-8") as handle:
-            writer = csv.writer(handle)
+            writer = csv.writer(handle, lineterminator="\n")
             writer.writerow(
                 [
                     "text",
@@ -135,7 +135,7 @@ class RunArtifacts:
 
     def write_confusion(self, y_true: np.ndarray, y_pred: np.ndarray, categories: list[str]) -> None:
         with (self.path / "confusion_matrix.csv").open("w", newline="", encoding="utf-8") as handle:
-            writer = csv.writer(handle)
+            writer = csv.writer(handle, lineterminator="\n")
             writer.writerow(["true\\pred", *categories])
             writer.writerows(confusion_rows(y_true, y_pred, categories))
 
