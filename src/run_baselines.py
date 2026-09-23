@@ -31,6 +31,11 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--batch-size", type=int, default=None, help="override deep-model batch size")
     parser.add_argument("--learning-rate", type=float, default=None)
     parser.add_argument("--max-length", type=int, default=64)
+    parser.add_argument("--min-steps", type=int, default=None, help="BERT minimum optimizer steps")
+    parser.add_argument("--max-steps", type=int, default=None, help="BERT maximum optimizer steps")
+    parser.add_argument("--eval-steps", type=int, default=None, help="BERT validation interval in steps")
+    parser.add_argument("--early-stopping-patience", type=int, default=None)
+    parser.add_argument("--early-stopping-threshold", type=float, default=None)
     parser.add_argument("--num-iterations", type=int, default=None, help="SetFit contrastive iterations")
     parser.add_argument("--svm-c", type=float, default=1.0)
     return parser.parse_args()
@@ -53,6 +58,16 @@ def kwargs_for(method: str, args: argparse.Namespace) -> dict[str, Any]:
             values["batch_size"] = args.batch_size
         if args.learning_rate is not None:
             values["learning_rate"] = args.learning_rate
+        if args.min_steps is not None:
+            values["min_steps"] = args.min_steps
+        if args.max_steps is not None:
+            values["max_steps"] = args.max_steps
+        if args.eval_steps is not None:
+            values["eval_steps"] = args.eval_steps
+        if args.early_stopping_patience is not None:
+            values["patience"] = args.early_stopping_patience
+        if args.early_stopping_threshold is not None:
+            values["early_stopping_threshold"] = args.early_stopping_threshold
         return values
     values = {
         **common,
