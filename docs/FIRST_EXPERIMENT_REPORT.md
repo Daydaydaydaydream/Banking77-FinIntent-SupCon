@@ -1,173 +1,193 @@
-# 第一次基线实验初步报告
+# Version 1 基线实验报告
 
-## 1. 报告目的
+## 1. 报告范围
 
-本报告总结项目第一次完整基线试验的运行结果，识别当前实验中已经确认的问题，分析可能原因，并给出进入监督对比学习（SupCon）和 hard negative mining 之前需要完成的修正工作。
+本报告总结 `outputs/version1/` 中保存的第一版完整基线实验。Version 1 已覆盖 3 种方法、4 种标注预算和统一的 `seed=42`，共 12 次运行：
 
-本轮实验的主要作用是验证数据、训练、评估和结果保存流程，并建立初始参照。由于目前只运行了 `seed=42`，且 BERT 少样本实验出现明显异常，因此本报告中的数值属于探索性结果，不作为最终论文结论。
+- TF-IDF + Linear SVM；
+- BERT 全参数微调；
+- SetFit；
+- 5-shot、10-shot、20-shot 和 full。
+
+本轮已经能够比较三种基线，但仍属于探索性单随机种子结果。特别是 BERT 的少样本训练出现明显预测塌缩，因此不能把 Version 1 直接作为最终论文结论，也不能据此宣称某种深度学习方法在统计意义上稳定优于另一种方法。
 
 ## 2. 实验设置
 
 ### 2.1 数据与标注预算
 
-- 数据集：BANKING77，共 77 个意图类别；
-- 训练池：9,000 条；
-- 固定验证集：1,003 条；
-- 官方测试集：3,080 条，每类 40 条；
-- 标注预算：5-shot、10-shot、20-shot 和 full；
-- 当前随机种子：42。
+| 项目 | 数值 |
+|---|---:|
+| 意图类别 | 77 |
+| 训练池 | 9,000 |
+| 固定验证集 | 1,003 |
+| 官方测试集 | 3,080 |
+| 测试集每类样本 | 40 |
 
-少样本训练集从训练池内按类别抽取，分别包含 385、770 和 1,540 条样本。验证集保持固定，官方测试集不参与 checkpoint 选择。
+少样本训练集从训练池中按类别抽取：
 
-### 2.2 已运行方法
+| Setting | 每类训练样本 | 训练样本总数 |
+|---|---:|---:|
+| 5-shot | 5 | 385 |
+| 10-shot | 10 | 770 |
+| 20-shot | 20 | 1,540 |
+| full | 不限 | 9,000 |
+
+验证集固定不变，官方测试集不参与 checkpoint 选择。Version 1 的完整运行产物见 [`outputs/version1/runs/`](../outputs/version1/runs/)。
+
+### 2.2 方法配置
 
 1. **TF-IDF + Linear SVM**：word 1–2 gram、sublinear TF、`C=1.0`、类别平衡；
 2. **BERT**：`bert-base-uncased` 全参数微调，5 epochs，batch size 32，学习率 `2e-5`，最大长度 64，按验证集 Macro-F1 选择 checkpoint；
-3. **SetFit**：已产生 full 设置的配置和环境文件，但没有产生完整指标与预测文件，不能计入本轮结果。
+3. **SetFit**：`sentence-transformers/all-MiniLM-L6-v2`，少样本设置使用 20 次对比样本迭代，full 设置使用 1 次迭代，再训练分类头。
 
-## 3. 主要结果
+## 3. 总体结果
 
-### 3.1 总体指标
+### 3.1 Validation 与 Test 指标
 
 | Method | Setting | Validation Macro-F1 | Test Macro-F1 | Test Accuracy | 训练时间（秒） |
 |---|---|---:|---:|---:|---:|
-| TF-IDF + SVM | 5-shot | 0.5091 | **0.5519** | 0.5620 | 0.02 |
-| BERT | 5-shot | 0.0063 | 0.0078 | 0.0279 | 68.98 |
-| TF-IDF + SVM | 10-shot | 0.6331 | **0.6649** | 0.6708 | 0.03 |
-| BERT | 10-shot | 0.0280 | 0.0280 | 0.0549 | 97.97 |
-| TF-IDF + SVM | 20-shot | 0.7348 | **0.7567** | 0.7584 | 0.05 |
-| BERT | 20-shot | 0.2594 | 0.2648 | 0.3006 | 166.62 |
-| TF-IDF + SVM | full | **0.8639** | **0.8879** | **0.8880** | 0.28 |
-| BERT | full | 0.8569 | 0.8602 | 0.8701 | 732.58 |
+| TF-IDF + SVM | 5-shot | 0.5091 | 0.5519 | 0.5620 | 0.02 |
+| TF-IDF + SVM | 10-shot | 0.6331 | 0.6649 | 0.6708 | 0.05 |
+| TF-IDF + SVM | 20-shot | 0.7348 | 0.7567 | 0.7584 | 0.08 |
+| TF-IDF + SVM | full | **0.8639** | **0.8879** | **0.8880** | 0.37 |
+| BERT | 5-shot | 0.0063 | 0.0077 | 0.0279 | 71.27 |
+| BERT | 10-shot | 0.0298 | 0.0351 | 0.0633 | 113.02 |
+| BERT | 20-shot | 0.2643 | 0.2676 | 0.3019 | 191.78 |
+| BERT | full | 0.8527 | 0.8644 | 0.8744 | 1,009.27 |
+| SetFit | 5-shot | **0.7273** | **0.7557** | **0.7604** | 196.50 |
+| SetFit | 10-shot | **0.7639** | **0.8062** | **0.8094** | 337.97 |
+| SetFit | 20-shot | **0.8147** | **0.8325** | **0.8354** | 599.60 |
+| SetFit | full | 0.8545 | 0.8778 | 0.8779 | 208.90 |
 
-当前结果呈现两个非常明确的现象：
+汇总数据和主图可直接查看：
 
-- TF-IDF + SVM 随标注量增加稳定提升，在四种设置下均形成了有效基线；
-- BERT 在 full 设置下能够正常学习，但在 5-shot、10-shot 和 20-shot 下明显训练不足，尤其 5-shot 和 10-shot 已接近失效。
+- [`test_metrics_summary.csv`](../outputs/version1/figures/model_results/test_metrics_summary.csv)
+- [`test_macro_f1_comparison.png`](../outputs/version1/figures/model_results/test_macro_f1_comparison.png)
 
-在 full 设置下，TF-IDF 的测试 Macro-F1 比 BERT 高 0.0277。按类别分层进行测试集配对重采样后，该差值的 95% 区间约为 `[0.0163, 0.0390]`。这说明对于当前测试样本，TF-IDF 的领先较稳定；但该区间不能反映随机种子和训练过程带来的不确定性，仍需多次独立运行。
+Version 1 呈现出三个清楚的现象：
 
-### 3.2 BERT 少样本预测塌缩
+- **SetFit 是当前最强的 few-shot 基线。** 它在 5-shot、10-shot 和 20-shot 上均取得最高 Test Macro-F1；
+- **TF-IDF + SVM 是当前最强的 full-data 基线。** full Test Macro-F1 为 0.8879，比 SetFit 高 0.0101，比 BERT 高 0.0235；
+- **BERT 只有 full 设置可以视为正常基线。** 三个少样本设置均存在不同程度的预测塌缩，当前数值不适合与 SupCon 做公平比较。
 
-| Setting | BERT 预测出的类别数 | Test F1 为 0 的类别数 |
-|---|---:|---:|
-| 5-shot | 25 / 77 | 66 / 77 |
-| 10-shot | 44 / 77 | 50 / 77 |
-| 20-shot | 69 / 77 | 12 / 77 |
-| full | 76 / 77 | 1 / 77 |
+### 3.2 SetFit 相对 TF-IDF 的增量
 
-5-shot 下，BERT 将大量测试样本集中预测为少数类别。例如 `getting_spare_card` 被预测了 992 次。这不是正常的少样本性能下降，而是明显的类别预测塌缩。因此，当前少样本 BERT 数值不能作为后续 SupCon 的可信对照。
+| Setting | Validation Macro-F1 增量 | Test Macro-F1 增量 | 测试集配对重采样 95% 区间 |
+|---|---:|---:|---:|
+| 5-shot | +0.2182 | +0.2038 | [0.1850, 0.2219] |
+| 10-shot | +0.1308 | +0.1412 | [0.1237, 0.1579] |
+| 20-shot | +0.0799 | +0.0758 | [0.0602, 0.0907] |
+| full | -0.0095 | -0.0101 | [-0.0211, 0.0022] |
 
-训练历史也支持这一判断。5-shot 的验证损失始终在 4.3 左右，而 77 类随机预测对应的交叉熵约为 `ln(77)=4.34`，说明模型基本停留在接近随机预测的状态。随着训练样本增加，10-shot 和 20-shot 的损失才逐渐下降；full 设置则能够正常收敛。
+配对重采样按测试类别分层，运行 500 次。前三个少样本预算下，SetFit 的优势在当前测试样本上较稳定；full 设置的区间跨越 0，不能根据本轮样本认定两者有稳定差异。该区间只描述测试样本重采样的不确定性，不包含 few-shot 抽样、参数初始化和训练随机性，不能替代多随机种子实验。
 
-### 3.3 易混淆类别
+逐类比较也支持这一趋势：SetFit 相对 TF-IDF 在 5-shot、10-shot 和 20-shot 下分别改善了 71、67 和 59 个类别；full 下则是 35 类改善、38 类下降、4 类持平，说明 full 场景不存在全面优势。
 
-TF-IDF 与正常收敛的 full BERT 都在以下语义相近类别之间出现较多双向误判：
+## 4. 模型行为分析
+
+### 4.1 SetFit：少样本下有效且覆盖完整
+
+SetFit 在四种设置中都预测出了全部 77 个类别，没有出现 Test F1 为 0 的类别。5-shot 的预测类别分布归一化熵约为 0.992，表明预测没有集中到少数标签。
+
+5-shot 下，相对 TF-IDF 改善最大的类别包括：
+
+| Class | F1 增量 |
+|---|---:|
+| `top_up_failed` | +0.573 |
+| `atm_support` | +0.535 |
+| `failed_transfer` | +0.492 |
+| `transaction_charged_twice` | +0.461 |
+| `top_up_by_bank_transfer_charge` | +0.418 |
+| `declined_cash_withdrawal` | +0.415 |
+
+不过，SetFit 仍然存在稳定的难类。5-shot 下 `topping_up_by_card` 的 F1 只有 0.314，`balance_not_updated_after_bank_transfer`、`why_verify_identity`、`beneficiary_not_allowed` 和 `supported_cards_and_currencies` 也低于或接近 0.53。20-shot 中 `why_verify_identity` 的 F1 反而降至 0.122，说明增加样本并没有自动解决身份验证类别边界问题。
+
+### 4.2 BERT：少样本预测塌缩
+
+| Setting | 预测出的类别数 | Test F1 为 0 的类别数 | 预测分布归一化熵 |
+|---|---:|---:|---:|
+| 5-shot | 24 / 77 | 66 / 77 | 0.463 |
+| 10-shot | 48 / 77 | 46 / 77 | 0.611 |
+| 20-shot | 68 / 77 | 13 / 77 | 0.807 |
+| full | 75 / 77 | 2 / 77 | 0.990 |
+
+5-shot 验证 Macro-F1 在第 4 个 epoch 最高也只有 0.0063，验证损失从约 4.357 降至 4.295；77 类随机预测的交叉熵约为 `ln(77)=4.34`，说明模型基本没有学到可用的类别边界。10-shot 和 20-shot 虽有所改善，但仍远未充分收敛。full 设置则正常收敛，最后验证损失约为 0.79。
+
+根本问题是所有数据预算都固定为 5 epochs。5-shot、10-shot 和 20-shot 的总 optimizer steps 远少于 full，同时前 10% 仍用于 warmup。相同 epoch 并不等于相同训练预算，全参数微调在极少样本下也更容易受到初始化和数据顺序影响。
+
+### 4.3 易混淆类别与 hard negative 候选
+
+当前错误集中在业务对象相同、但状态或用户诉求不同的类别组：
 
 | 类别组 | 主要区别 |
 |---|---|
 | `verify_my_identity` / `why_verify_identity` / `unable_to_verify_identity` | 如何验证、为何验证、无法验证 |
-| `pending_top_up` / `top_up_failed` / `top_up_reverted` | 充值处理中、充值失败、充值被退回 |
-| `card_arrival` / `card_delivery_estimate` | 卡片到达状态、预计送达时间 |
+| `pending_top_up` / `top_up_failed` / `top_up_reverted` | 充值处理中、充值失败、充值退回 |
 | `get_disposable_virtual_card` / `virtual_card_not_working` | 获取虚拟卡、虚拟卡无法使用 |
-| `card_payment_wrong_exchange_rate` / `wrong_exchange_rate_for_cash_withdrawal` | 卡支付汇率错误、取现汇率错误 |
-| `balance_not_updated_after_bank_transfer` / `transfer_not_received_by_recipient` | 自己余额未更新、收款人未收到 |
+| `balance_not_updated_after_bank_transfer` / `balance_not_updated_after_cheque_or_cash_deposit` | 银行转账后余额未更新、现金或支票存入后余额未更新 |
+| `card_payment_wrong_exchange_rate` / `wrong_exchange_rate_for_cash_withdrawal` | 卡支付汇率、取现汇率 |
 
-这些错误与项目最初的研究假设一致：剩余困难主要集中在业务对象相同、但状态或用户诉求不同的细粒度意图上。它们可以作为后续 hard negative mining 的优先候选，但候选关系只能从训练集和验证集构造，不能根据测试集反复调参。
+5-shot 中，SetFit 相对 TF-IDF 明显减少了部分双向误判：
 
-## 4. 当前问题与可能原因
+| Intent pair | TF-IDF | SetFit |
+|---|---:|---:|
+| `pending_top_up` ↔ `top_up_failed` | 21 | 5 |
+| `atm_support` ↔ `card_acceptance` | 20 | 1 |
+| `exchange_via_app` ↔ `exchange_charge` | 15 | 1 |
+| `get_disposable_virtual_card` ↔ `disposable_card_limits` | 21 | 8 |
+| `verify_my_identity` ↔ `why_verify_identity` | 30 | 22 |
 
-### 4.1 少样本 BERT 训练预算不足
+但并非所有类别对都改善。20-shot 中 `verify_my_identity` ↔ `why_verify_identity` 的双向误判由 TF-IDF 的 8 次增加到 SetFit 的 27 次。这组类别应作为后续 SupCon + hard negatives 的重点对象，同时也用于检查难负例是否带来副作用。
 
-这是本轮最主要的问题。当前所有 BERT 设置统一训练 5 epochs，但每个 epoch 的更新步数取决于样本量。5-shot、10-shot 和 20-shot 大约只有 13、25 和 49 个 batch，每轮训练总计约 65、125 和 245 次参数更新，其中还包含 10% warmup。
+这些候选来自测试集的事后误差分析，只能用于提出研究假设。后续 hard negative 构造和超参数选择必须基于训练集与验证集，不能直接用测试混淆矩阵反复调参。
 
-对一个具有 77 个分类目标的全参数 BERT 来说，这一更新预算很可能不足。相同 epoch 并不代表相同优化预算，因此当前不同标注设置之间并未获得同等充分的训练。
+## 5. 时间成本
 
-### 4.2 BERT 少样本全参数微调不稳定
+TF-IDF 的训练时间不足 1 秒，仍然是最适合做流程检查和强词面基线的方法。当前设备与实现下，BERT 推理速度约为每秒 331–339 条，SetFit 约为每秒 2,367–2,862 条，SetFit 大约快 7–9 倍。
 
-少量样本直接更新整个 BERT，容易产生较大的梯度和随机种子敏感性。分类头刚初始化，而 encoder 也同时变化，模型可能在尚未形成有效类别边界时便结束训练。当前单一学习率、单一随机种子无法排除优化不稳定的影响。
+训练时间不能直接横向解读。SetFit 的 few-shot 设置使用 20 次对比样本迭代，而 full 只使用 1 次，因此出现“full 比 20-shot 更快”的非单调现象。这是不同训练预算造成的，不代表数据越多训练越快。后续公平比较应同时报告 optimizer steps、epoch/iteration 和 wall-clock time。
 
-### 4.3 SetFit 运行不完整
+## 6. 当前问题与局限
 
-SetFit 目前只有配置和环境记录，没有 `metrics.json`、`predictions.csv` 和 confusion matrix。现有文件不足以确定是运行中断、资源问题还是训练代码异常。本轮不能对 SetFit 性能作任何判断。
+1. **只有一个随机种子。** 当前不能估计 few-shot 抽样和深度模型初始化的波动，也不能报告正式的 `mean ± std`。
+2. **BERT 少样本基线无效。** 如果直接与 SupCon 比较，提升可能仅来自训练步骤或 batch 构造更充分，而不是对比学习本身。
+3. **SetFit 训练历史为空。** 四次运行的 `training_history.json` 均为 `[]`，当前代码很可能读取了外层 trainer 状态，而实际日志保存在内部 Sentence Transformers trainer 中。
+4. **部分元数据含旧绝对路径。** `best_checkpoint` 和可视化 manifest 仍保存旧机器路径，移动到 `outputs/version1/` 后已经失效。后续应保存相对路径或在归档时重写。
+5. **checkpoint 体积较大。** 四个 SetFit 中间 checkpoint 合计约 1 GB；当前 `--no-save-model` 只控制最终模型，没有完全禁止训练器保存中间 checkpoint。
+6. **测试集已用于探索性分析。** Version 1 已查看测试指标与混淆关系，后续配置选择必须严格只看验证集，测试集只用于冻结方案后的最终评估。
 
-### 4.4 只有一个随机种子
+## 7. 下一阶段计划
 
-当前所有有效结果均来自 `seed=42`，无法估计 few-shot 抽样差异和模型初始化带来的波动。特别是深度模型的少样本实验，单次运行可能产生误导性结论。
+### 7.1 修复并冻结可信 BERT baseline
 
-### 4.5 测试集已经用于探索性分析
+- 将 few-shot 的固定 5 epochs 改为最低 optimizer steps 或设置更高的最大 epoch，并用验证集早停；
+- 在验证集小范围比较学习率、warmup、冻结 encoder 与只训练分类头等稳定化方案；
+- 自动记录预测类别覆盖数、零 F1 类别数和预测分布熵，把塌缩运行标为异常；
+- 只有当三个 few-shot 设置都覆盖绝大多数类别并明显优于随机状态后，才冻结 BERT 配置。
 
-本轮已经查看了测试指标、逐类结果和混淆关系。后续修复训练配置时，必须只根据验证集选择超参数和 checkpoint，不能以测试 Macro-F1 是否上升作为调参依据。否则会把测试信息间接带入模型选择。
+### 7.2 修复产物记录
 
-### 4.6 当前不能检验 SupCon 的增量
+- 从正确的内部 trainer 导出 SetFit 训练历史；
+- 将 checkpoint 和 manifest 路径改为相对路径；
+- 让 `--no-save-model` 同时关闭或清理中间 checkpoint；
+- 在汇总表中补充训练步数，避免只用时间比较不同预算。
 
-研究目标是比较 BERT baseline、SupCon 和 SupCon + hard negatives。如果 baseline 本身没有收敛，SupCon 即使获得大幅提升，也无法说明提升来自对比学习机制，而可能只是训练步数、batch 构造或优化过程更充分。因此必须先通过“基线可信”判定门。
+### 7.3 完成多随机种子基线
 
-## 5. 后续解决方案
+固定配置后，至少运行 3 个随机种子。主结果报告 `mean ± std`，同时保留每个 seed 的 per-class F1、预测文件与 confusion matrix。如果深度模型波动较大，应先报告稳定性问题，而不是只选择最好的一次。
 
-### 5.1 第一优先级：修复少样本 BERT
+### 7.4 开展核心消融
 
-下一轮只使用验证集确定训练配置，建议按以下顺序处理：
-
-1. 将少样本训练预算从固定 5 epochs 改为固定或最低更新步数，例如先测试 300–500 个 optimizer steps；
-2. 保留验证集早停，限制最大 epoch，防止在小训练集上无限过拟合；
-3. 在验证集上小范围比较 `1e-5`、`2e-5` 和 `5e-5` 等学习率；
-4. 比较全参数微调、冻结部分 encoder 层和先训练分类头三种稳定化方案；
-5. 每轮自动检查预测类别覆盖数、零 F1 类别数和预测分布熵，在出现类别塌缩时直接标记该次运行异常；
-6. 确认少样本 BERT 的验证损失明显低于随机交叉熵，并能对大多数类别产生有效预测后，再冻结基线配置。
-
-这里的目标不是根据测试集追求最高分，而是得到一个训练充分、行为合理、能够复现的 BERT baseline。
-
-### 5.2 第二优先级：完成 SetFit
-
-先在 5-shot 上运行最小 smoke test，并将标准输出、异常堆栈和运行状态保存到日志。确认能够生成统一的配置、指标、预测和混淆矩阵后，再运行全部标注预算。SetFit 是面向少样本场景的重要对照，缺失它会削弱对 SupCon 效果的解释。
-
-### 5.3 第三优先级：增加随机种子
-
-基线配置固定后，至少运行 3 个随机种子，并报告 `mean ± std`。随机种子应同时控制：
-
-- few-shot 样本抽取；
-- 模型参数初始化；
-- DataLoader 顺序；
-- 可控情况下的训练算子随机性。
-
-如果不同 seed 差异较大，应优先报告波动并分析稳定性，而不是只保留最好结果。
-
-### 5.4 第四优先级：进入 SupCon 消融
-
-只有 TF-IDF、BERT 和 SetFit 的四种预算均产生可信结果后，才依次运行：
+按以下顺序运行，并保持相同 backbone、数据、随机种子、验证规则和等价训练预算：
 
 1. BERT baseline；
 2. BERT + SupCon；
 3. BERT + SupCon + hard negatives。
 
-三组实验必须保持相同数据划分、backbone、验证规则和等价训练预算。Hard negatives 优先围绕验证集中稳定出现的身份验证、充值、虚拟卡、汇率和转账类别组构造。
+最终不仅比较 Macro-F1，还要检查高混淆 intent pair 的双向误判是否稳定下降、改善是否集中于 few-shot、是否导致其他类别退化，以及性能提升是否值得额外训练成本。
 
-### 5.5 结果分析标准
+## 8. Version 1 结论
 
-后续不能只比较总体 Macro-F1，还应同时回答：
+Version 1 已经形成三种方法、四种标注预算的完整单 seed 基线。最明确的结果是：**SetFit 在少样本条件下显著优于 TF-IDF，而 TF-IDF 在 full-data 条件下仍是最强且成本最低的基线。** 这说明对比式句向量方法确实适合当前 few-shot 场景，也为继续验证 SupCon 提供了合理依据。
 
-- 各标注预算下的提升是否跨随机种子稳定；
-- per-class F1 的收益是否集中在易混淆类别；
-- 高混淆 intent pair 的双向误判数是否下降；
-- 改善某些类别是否以其他类别退化为代价；
-- SupCon 和 hard negatives 分别带来了多少独立增量；
-- 性能提升是否值得额外训练成本。
-
-## 6. 下一轮验收条件
-
-进入 SupCon 实验前，至少满足以下条件：
-
-- BERT 的 5-shot、10-shot、20-shot 和 full 均完成且无大规模预测塌缩；
-- SetFit 四种设置均产生完整、统一的运行产物；
-- 三种 baseline 至少完成 3 个随机种子；
-- 超参数只根据验证集确定；
-- 主结果能够报告 mean ± std；
-- 每次运行都能复算 Macro-F1、per-class F1 和 confusion matrix；
-- 异常运行有日志和明确标记，不与正常结果混合求平均。
-
-## 7. 初步结论
-
-第一次实验成功验证了数据和统一评估流程，并建立了一个稳定且较强的 TF-IDF + SVM 基线。Full BERT 已经能够正常收敛，但其 Macro-F1 暂时低于 TF-IDF；少样本 BERT 则由于训练预算和优化稳定性问题发生严重类别塌缩，当前结果不具备方法比较价值。SetFit 尚未完整运行。
-
-另一方面，多个模型的错误确实集中在语义高度相近的意图类别上，这为后续监督对比学习和 hard negative mining 提供了明确的研究对象。下一阶段不应立即增加模型复杂度，而应先修复并稳定三个 baseline，完成多随机种子验证，再按照 baseline、SupCon、SupCon + hard negatives 的顺序开展可解释的消融实验。
+与此同时，BERT 的三个少样本结果发生严重预测塌缩，尚不能作为可信的 SupCon 对照；单一随机种子、SetFit 日志缺失和训练预算不等价也限制了结论强度。下一步应先修复 BERT 与产物记录，完成多随机种子基线，再开展 `baseline → SupCon → SupCon + hard negatives` 消融。Version 1 已经支持提出 hard negative 的候选类别组，但还不足以宣称 SupCon 或 hard negative mining 已经有效。

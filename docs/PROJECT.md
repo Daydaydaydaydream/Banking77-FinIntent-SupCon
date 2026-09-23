@@ -120,6 +120,6 @@ t-SNE 等表示可视化只作为辅助证据，不替代定量结果。
 
 ## 8. 当前状态与文档导航
 
-当前仓库已经完成数据准备、EDA、统一基线代码与首次单随机种子运行。TF-IDF 已形成稳定基线，BERT 少样本运行出现预测塌缩，SetFit 尚未生成完整结果。首次结果属于流程验证与问题定位，不作为最终多随机种子结论。
+当前仓库已经完成数据准备、EDA、统一基线代码与 Version 1 单随机种子运行。TF-IDF、BERT、SetFit 的四种标注预算均已生成完整结果：SetFit 在 few-shot 下表现最好，TF-IDF 在 full 下表现最好，BERT 少样本运行则出现预测塌缩。Version 1 属于流程验证与问题定位，不作为最终多随机种子结论。
 
-具体任务顺序、验收标准和产物规范见 [DEVELOPMENT_PLAN.md](DEVELOPMENT_PLAN.md)，首次实验分析见 [FIRST_EXPERIMENT_REPORT.md](FIRST_EXPERIMENT_REPORT.md)。
+具体任务顺序、验收标准和产物规范见 [DEVELOPMENT_PLAN.md](DEVELOPMENT_PLAN.md)，Version 1 实验分析见 [FIRST_EXPERIMENT_REPORT.md](FIRST_EXPERIMENT_REPORT.md)。

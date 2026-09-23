@@ -13,12 +13,12 @@
 - BANKING77 原始训练集、测试集和类别文件已在仓库中；
 - EDA、固定训练/验证划分、重复文本泄漏检查及划分清单已经完成；
 - 项目研究问题、方法边界和实验口径已确定；
-- TF-IDF + SVM、BERT、SetFit 三组 baseline 及统一训练产物已经实现；TF-IDF 与 BERT 四种预算已完成 `seed=42` 首次运行，但 BERT 少样本实验发生预测塌缩，需要修正训练预算；SetFit 尚未生成完整指标；
+- TF-IDF + SVM、BERT、SetFit 三组 baseline 及统一训练产物已经实现，三种方法的四种预算均已完成 `seed=42` Version 1 运行；SetFit 在 few-shot 下形成有效基线，但 BERT 少样本实验发生预测塌缩，需要修正训练预算；
 - 旧文档中的历史单次结果缺少当前仓库内的代码与产物支撑，不纳入最终结论。
 
-第一次运行的详细结果、问题与修正方案见 [FIRST_EXPERIMENT_REPORT.md](FIRST_EXPERIMENT_REPORT.md)。
+Version 1 的详细结果、问题与修正方案见 [FIRST_EXPERIMENT_REPORT.md](FIRST_EXPERIMENT_REPORT.md)。
 
-因此下一步应先修复少样本 BERT 并完成 SetFit，在基线通过可信度检查后再进入 SupCon 阶段。
+因此下一步应先修复少样本 BERT、SetFit 训练历史与运行元数据，再完成多随机种子基线；基线通过可信度检查后再进入 SupCon 阶段。
 
 ## 3. 目标目录与产物契约
 
