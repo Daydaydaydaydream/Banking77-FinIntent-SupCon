@@ -8,19 +8,21 @@
 
 - [项目介绍](docs/PROJECT.md)：研究问题、数据集、方法范围、实验设计与预期产出。
 - [开发规划](docs/DEVELOPMENT_PLAN.md)：实施阶段、实验协议、验收标准与范围边界。
-- [第一次基线实验初步报告](docs/FIRST_EXPERIMENT_REPORT.md)：首次运行结果、异常分析与下一轮解决方案。
+- [Version 1 基线实验报告](docs/FIRST_EXPERIMENT_REPORT.md)：12 组基线结果、模型行为、局限与下一轮方案。
 
 ## 当前状态
 
-仓库已完成 BANKING77 EDA、可复现的训练/验证划分，以及 TF-IDF + SVM、BERT、SetFit 三组 baseline。TF-IDF 与 BERT 已完成四种数据预算的 `seed=42` 首次运行；其中 BERT 少样本结果出现预测塌缩，需要调整训练预算后重跑。SetFit 尚未生成完整指标。当前结果与处理建议见 [第一次基线实验初步报告](docs/FIRST_EXPERIMENT_REPORT.md)。
+仓库已完成 BANKING77 EDA、可复现的训练/验证划分，以及 TF-IDF + SVM、BERT、SetFit 三组 baseline。Version 1 已完成三种方法、四种数据预算的 `seed=42` 运行，共 12 组结果。SetFit 在 5/10/20-shot 中表现最好，TF-IDF + SVM 在 full 中表现最好；BERT 少样本结果出现预测塌缩，需要调整训练预算后重跑。详细分析见 [Version 1 基线实验报告](docs/FIRST_EXPERIMENT_REPORT.md)。
 
-当前数据产物：
+Version 1 已归档产物：
 
-- `outputs/eda/eda_report.md`：EDA 结论与图表；
-- `outputs/eda/banking77_eda.xlsx`：可筛选的数据分析工作簿；
-- `outputs/datasets/train.csv`：9,000 条训练数据；
-- `outputs/datasets/val.csv`：1,003 条验证数据；
-- `outputs/datasets/split_manifest.json`：随机种子、源文件哈希和划分索引。
+- `outputs/version1/eda/eda_report.md`：EDA 结论与图表；
+- `outputs/version1/eda/banking77_eda.xlsx`：可筛选的数据分析工作簿；
+- `outputs/version1/datasets/`：训练、验证、测试数据及划分清单；
+- `outputs/version1/runs/`：12 组训练配置、指标、预测和混淆矩阵；
+- `outputs/version1/figures/model_results/`：Version 1 模型结果可视化。
+
+训练代码仍将新实验写入 `outputs/datasets/`、`outputs/runs/` 和 `outputs/figures/`。如果这些活动目录不存在，先运行数据准备命令；`outputs/version1/` 作为第一版实验快照保留。
 
 ## 数据
 
@@ -32,16 +34,17 @@
 
 `data/` 下的 NLU++ 与 span extraction 文件来自上游数据仓库，不在当前实验范围内。
 
-## 当前 TF-IDF 结果
+## Version 1 结果摘要
 
-固定 `seed=42` 的单次结果如下。它们用于验证流水线，不替代后续多随机种子的正式报告。
+固定 `seed=42` 的 Test Macro-F1 如下。它们用于验证流水线和发现问题，不替代后续多随机种子的正式报告。
 
-| Setting | Validation Macro-F1 | Test Macro-F1 |
-|---|---:|---:|
-| full | 0.8639 | 0.8879 |
-| 5-shot | 0.5091 | 0.5519 |
-| 10-shot | 0.6331 | 0.6649 |
-| 20-shot | 0.7348 | 0.7567 |
+| Method | 5-shot | 10-shot | 20-shot | full |
+|---|---:|---:|---:|---:|
+| TF-IDF + SVM | 0.5519 | 0.6649 | 0.7567 | **0.8879** |
+| BERT | 0.0077 | 0.0351 | 0.2676 | 0.8644 |
+| SetFit | **0.7557** | **0.8062** | **0.8325** | 0.8778 |
+
+BERT 的 few-shot 数值来自发生预测塌缩的异常运行，不应视为可信的模型能力比较。
 
 ## 安装
 
@@ -80,6 +83,8 @@ PYTHONPATH=src python -m run_baselines --method setfit --setting 5shot --local-f
 # 运行全部方法与全部数据预算；耗时较长
 PYTHONPATH=src python -m run_baselines --method all --setting all --local-files-only
 ```
+
+BERT few-shot 默认至少训练 300 optimizer steps，每 50 steps 在验证集上评估，验证 Macro-F1 连续无改善时早停，并以 1,000 steps 作为上限。`full` 仍使用 epoch 级训练与早停。这些阈值可以通过 `--min-steps`、`--max-steps`、`--eval-steps` 和 `--early-stopping-patience` 调整，但只应依据验证集选择。
 
 常用选项：
 
