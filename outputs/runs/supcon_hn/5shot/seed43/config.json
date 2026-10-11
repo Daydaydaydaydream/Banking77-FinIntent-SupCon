@@ -1,0 +1,33 @@
+{
+  "method": "supcon_hn",
+  "setting": "5shot",
+  "seed": 43,
+  "model_name": "D:\\projects\\Banking77-FinIntent-SupCon\\models\\bert-base-uncased",
+  "train_rows": 385,
+  "validation_rows": 1003,
+  "test_rows": 3080,
+  "supcon_temperature": 0.1,
+  "supcon_epochs": 10,
+  "supcon_learning_rate": 5e-05,
+  "classifier_epochs": 30,
+  "classifier_lr": 0.001,
+  "weight_decay": 0.01,
+  "shots_per_class": 2,
+  "batch_size": 77,
+  "max_length": 64,
+  "hard_negative_temperature": 0.5,
+  "device": "cuda",
+  "precision": {
+    "requested": "bf16",
+    "resolved": "bf16",
+    "reason": "explicitly requested"
+  },
+  "freeze_layers": 0,
+  "attn_implementation": "eager",
+  "local_files_only": true,
+  "seed_info": {
+    "seed": 43,
+    "torch_available": true,
+    "torch_version": "2.14.0+cu130"
+  }
+}

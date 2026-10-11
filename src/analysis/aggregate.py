@@ -205,7 +205,19 @@ def main() -> None:
     summary = summarise(rows)
     table = pivot_table(summary)
     consistency = seed_consistency(rows)
-    comparisons = paired_comparison(rows, args.baseline, args.treatment)
+
+    # Record every ordered pair among the present methods, not just the
+    # requested one. The question the ablation has to answer is where the gain
+    # comes from, so supcon_hn - supcon matters as much as supcon_hn - bert.
+    present_methods = [m for m in MAIN_METHODS if (summary.method == m).any()]
+    pairs: list[dict[str, Any]] = []
+    for treatment in present_methods:
+        for baseline in present_methods:
+            if treatment == baseline:
+                continue
+            pairs.extend(paired_comparison(rows, baseline, treatment))
+    requested = [p for p in pairs if {p["baseline"], p["treatment"]} == {args.baseline, args.treatment}]
+    comparisons = requested or pairs
 
     summary.to_csv(args.output / "macro_f1_summary.csv", index=False)
     consistency.to_csv(args.output / "seed_consistency.csv", index=False)
@@ -213,7 +225,7 @@ def main() -> None:
         json.dumps(rows, indent=2), encoding="utf-8"
     )
     (args.output / "paired_comparisons.json").write_text(
-        json.dumps(comparisons, indent=2), encoding="utf-8"
+        json.dumps(pairs, indent=2), encoding="utf-8"
     )
 
     print("\n=== Test Macro-F1 (mean over seeds) ===")
@@ -221,11 +233,12 @@ def main() -> None:
     print("\n=== Seed spread ===")
     print(consistency.to_string(index=False))
     if comparisons:
-        print(f"\n=== Paired {args.treatment} - {args.baseline} ===")
+        label = f"{args.treatment} - {args.baseline}" if requested else "all pairs"
+        print(f"\n=== Paired deltas ({label}) ===")
         print(pd.DataFrame(comparisons).to_string(index=False))
     collapsed = [r for r in rows if r.get("collapsed")]
     if collapsed:
-        print(f"\n⚠ {len(collapsed)} run(s) flagged as collapsed and are not trustworthy:")
+        print(f"\n! {len(collapsed)} run(s) flagged as collapsed and are not trustworthy:")
         for row in collapsed:
             print(f"    {row['method']}/{row['setting']}/seed{row['seed']}")
 
