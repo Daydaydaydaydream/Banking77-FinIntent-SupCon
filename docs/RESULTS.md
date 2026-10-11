@@ -57,46 +57,48 @@
 | `virtual_card` | `get_disposable_virtual_card`, `disposable_card_limits`, `virtual_card_not_working` |
 
 
-### BERT (baseline) / 5-shot / seed42
+### 4.1 跨 3 个种子的一致性（bert → supcon）
 
-| Intent group | pairs | bidirectional errors |
-|---|---:|---:|
-| `top_up_state` | 6 | 67 |
-| `virtual_card` | 3 | 42 |
-| `identity_verification` | 6 | 34 |
-| `card_delivery` | 6 | 28 |
-| `exchange_rate` | 3 | 21 |
-| `refund` | 1 | 17 |
-| `balance_not_updated` | 1 | 12 |
-| `declined_transaction` | 3 | 10 |
+单一种子上某个类别对「改善」，可能只是错误转移到了未检查的类别对上。因此只有在该类别对上**每个种子都改善**才计为改善。
+
+| Setting | 组改善 | 三种子均改善的类别对 | 三种子均恶化的类别对 |
+|---|---:|---:|---:|
+| 5shot | 5/8 | 0/29 | 9/29 |
+| 10shot | 3/8 | 1/29 | 14/29 |
+| 20shot | 3/8 | 0/29 | 15/29 |
+| full | 5/8 | 0/29 | 15/29 |
 
 
-### BERT + SupCon / 5-shot / seed42
+### 4.2 逐组双向误判数变化（5-shot，三种子均值）
 
-| Intent group | pairs | bidirectional errors |
-|---|---:|---:|
-| `top_up_state` | 6 | 67 |
-| `virtual_card` | 3 | 43 |
-| `card_delivery` | 6 | 29 |
-| `identity_verification` | 6 | 28 |
-| `exchange_rate` | 3 | 22 |
-| `refund` | 1 | 12 |
-| `balance_not_updated` | 1 | 9 |
-| `declined_transaction` | 3 | 8 |
+| 组 | BERT (baseline) | BERT + SupCon | delta | 方向 |
+|---|---:|---:|---:|---|
+| `identity_verification` | 45.3 | 41.3 | -4.0 | 改善 |
+| `virtual_card` | 25.0 | 24.0 | -1.0 | 改善 |
+| `exchange_rate` | 19.7 | 19.3 | -0.3 | 改善 |
+| `balance_not_updated` | 5.7 | 5.3 | -0.3 | 改善 |
+| `refund` | 13.7 | 13.3 | -0.3 | 改善 |
+| `card_delivery` | 22.3 | 22.7 | +0.3 | 恶化 |
+| `declined_transaction` | 9.7 | 10.3 | +0.7 | 恶化 |
+| `top_up_state` | 39.0 | 46.7 | +7.7 | 恶化 |
+
+组改善 5/8；三种子均改善的类别对 0/29；三种子均恶化 9/29。
 
 
-### BERT + SupCon + HN / 5-shot / seed42
+### 4.3 hard negatives 的同一检验（5-shot）
 
-| Intent group | pairs | bidirectional errors |
-|---|---:|---:|
-| `top_up_state` | 6 | 63 |
-| `virtual_card` | 3 | 46 |
-| `identity_verification` | 6 | 32 |
-| `card_delivery` | 6 | 30 |
-| `exchange_rate` | 3 | 26 |
-| `refund` | 1 | 16 |
-| `balance_not_updated` | 1 | 10 |
-| `declined_transaction` | 3 | 8 |
+| 组 | BERT + SupCon | BERT + SupCon + HN | delta | 方向 |
+|---|---:|---:|---:|---|
+| `top_up_state` | 46.7 | 45.0 | -1.7 | 改善 |
+| `card_delivery` | 22.7 | 22.7 | +0.0 | 恶化 |
+| `balance_not_updated` | 5.3 | 5.3 | +0.0 | 恶化 |
+| `declined_transaction` | 10.3 | 10.7 | +0.3 | 恶化 |
+| `refund` | 13.3 | 13.7 | +0.3 | 恶化 |
+| `virtual_card` | 24.0 | 25.0 | +1.0 | 恶化 |
+| `exchange_rate` | 19.3 | 21.0 | +1.7 | 恶化 |
+| `identity_verification` | 41.3 | 43.7 | +2.3 | 恶化 |
+
+组改善 1/8；三种子均改善的类别对 0/29；三种子均恶化 21/29。
 
 
 ### 逐对双向误判变化（BERT → SupCon，5-shot）

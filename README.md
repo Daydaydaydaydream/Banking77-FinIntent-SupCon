@@ -21,12 +21,72 @@
 | TF-IDF + Linear SVM | 0.5494 ± 0.0040 | 0.6622 ± 0.0027 | 0.7599 ± 0.0031 | 0.8879 ± 0.0000 |
 | SetFit | **0.7500** ± 0.0229 | 0.7978 ± 0.0105 | 0.8219 ± 0.0057 | 0.8768 ± 0.0049 |
 | BERT | 0.6968 ± 0.0111 | **0.8137** ± 0.0071 | **0.8629** ± 0.0057 | **0.9236** ± 0.0081 |
+| BERT + SupCon | 0.6554 ± 0.0043 | 0.7954 ± 0.0061 | 0.8545 ± 0.0031 | **0.9299** ± 0.0048 |
+| BERT + SupCon + HN | 0.6552 ± 0.0038 | 0.7951 ± 0.0044 | 0.8528 ± 0.0055 | 0.9276 ± 0.0023 |
 
 超参数只在验证集上选择，冻结结果见 [`configs/bert_frozen.json`](configs/bert_frozen.json)。测试集不参与任何配置决策。
 
 早期报告中的两组结论已被推翻：BERT 少样本塌缩使「SetFit 是最强少样本基线」不成立，full 设置下 BERT 也反超 TF-IDF，历史对照见 [`docs/FIRST_EXPERIMENT_REPORT.md`](docs/FIRST_EXPERIMENT_REPORT.md)。
 
-每次运行的配置、环境、指标、逐类指标与混淆矩阵位于 `outputs/runs/<method>/<setting>/seed<seed>/`，聚合表位于 `outputs/results/`。
+消融臂（BERT + SupCon / + hard negatives）已完成 60 组运行，结论见下文「当前结论」。每次运行的配置、环境、指标、逐类指标与混淆矩阵位于 `outputs/runs/<method>/<setting>/seed<seed>/`，聚合表位于 `outputs/results/`。
+
+## 当前结论
+
+**SupCon 与 hard negative mining 在本数据集上没有产生可复现的收益。** 这是一个负面结果，但它建立在可靠的对照之上。
+
+三种子逐对配对差值（同一划分、同一随机种子下比较）：
+
+| 对照 | 5-shot | 10-shot | 20-shot | full |
+|---|---:|---:|---:|---:|
+| SupCon − BERT | −0.0414 ± 0.0075 | −0.0182 ± 0.0125 | −0.0084 ± 0.0039 | +0.0063 ± 0.0123 |
+| SupCon+HN − SupCon | −0.0002 ± 0.0010 | −0.0003 ± 0.0021 | −0.0017 ± 0.0036 | −0.0023 ± 0.0033 |
+
+SupCon 在三个少样本设置上一致劣于 BERT，仅在 full 上以不足 1 分领先且最差种子仍为负。Hard negative 在四个设置上增量全部接近零且区间跨越零。
+
+预声明的29 个易混淆类别对在三个种子上的一致性：
+
+| Setting | 组改善 | 三种子均改善的类别对 | 三种子均恶化的类别对 |
+|---|---:|---:|---:|
+| 5-shot | 5/8 | 0/29 | 9/29 |
+| 10-shot | 3/8 | 1/29 | 14/29 |
+| 20-shot | 3/8 | 0/29 | 15/29 |
+| full | 5/8 | 0/29 | 15/29 |
+
+单一种子上 `verify_my_identity ↔ why_verify_identity` 从 24 降到 13 看似改善，但跨三个种子不复现，且 `top_up_state` 组从 39.0 升到 46.7。类别对在训练前依据标签语义声明，不存在选择性偏差。
+
+对比学习本身确实在学习（损失从 4.51 降到约 1.0，full 设置结果上升），因此这不是静默失败。合理解释是：在每类仅数条标注时，对比预训练没有提供全参数微调尚未提取的信息，而两阶段训练又把部分预算花在了冻结编码器上。SupCon 在各设置下都比 BERT 更稳定（波动范围 0.0056–0.0120 对0.0108–0.0220），这一点与主指标无关但值得记录。
+
+完整数据见 [`docs/RESULTS.md`](docs/RESULTS.md)，所有数字由 `outputs/runs/` 下的 `metrics.json` 重新生成。
+
+## 复现命令
+
+```bash
+# 1. 准备数据（固定 seed=42 的划分）
+PYTHONPATH=src python -m data.prepare_data
+
+# 2. 验证集超参搜索，冻结配置
+PYTHONPATH=src python -m analysis.tune_bert --setting all --seed 42 --freeze
+
+# 3. 基线矩阵（3 方法 × 4 设置 × 3 种子）
+PYTHONPATH=src python -m run_baselines \
+  --method tfidf_svm bert setfit --setting all --seed 42 43 44 \
+  --config configs/bert_frozen.json --local-files-only --no-save-model
+
+# 4. 消融（SupCon 与 SupCon+HN）
+PYTHONPATH=src python -m run_baselines \
+  --method supcon supcon_hn --setting all --seed 42 43 44 \
+  --local-files-only --no-save-model --precision bf16 --supcon-epochs 10 \
+  --hn-temperature 0.5
+
+# 5. 汇总与报告
+PYTHONPATH=src python -m analysis.aggregate --setting all
+PYTHONPATH=src python -m analysis.confusion_pairs \
+  --setting 5shot --seed 42 43 44 --compare bert supcon
+PYTHONPATH=src python -m analysis.report --output docs/RESULTS.md
+
+# 6. 测试
+PYTHONPATH=src python -m unittest discover -s tests -v
+```
 
 ## 数据
 

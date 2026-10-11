@@ -20,7 +20,14 @@ from typing import Any
 import pandas as pd
 
 from analysis.aggregate import discover, paired_comparison, pivot_table, seed_consistency, summarise
-from analysis.confusion_pairs import CONFUSION_GROUPS, compare, declared_pairs, group_summary, pair_confusions
+from analysis.confusion_pairs import (
+    CONFUSION_GROUPS,
+    compare,
+    declared_pairs,
+    group_aggregate_over_seeds,
+    group_summary,
+    pair_confusions,
+)
 from config import ROOT, RUNS_DIR
 
 
@@ -91,20 +98,6 @@ def ablation_section(comparisons: list[dict[str, Any]], baseline: str) -> str:
     return "\n".join(lines)
 
 
-def confusion_section(method: str, setting: str, seed: int, runs_dir: Path) -> str:
-    from analysis.confusion_pairs import load_confusion
-
-    conf = load_confusion(method, setting, seed, runs_dir)
-    if conf is None:
-        return f"_No confusion matrix for {method}/{setting}/seed{seed}._"
-    rows = pair_confusions(conf[0], declared_pairs())
-    groups = group_summary(rows)
-    lines = ["| Intent group | pairs | bidirectional errors |", "|---|---:|---:|"]
-    for entry in groups:
-        lines.append(f"| `{entry['group']}` | {entry['pairs']} | {entry['bidirectional_total']} |")
-    return "\n".join(lines)
-
-
 def _markdown_table(frame: Any, index_label: str = "") -> str:
     """Render a DataFrame as a GitHub markdown table without ``tabulate``."""
 
@@ -117,6 +110,58 @@ def _markdown_table(frame: Any, index_label: str = "") -> str:
             cells.append(str(index))
         cells.extend("-" if pd.isna(value) else str(value) for value in row.tolist())
         lines.append("| " + " | ".join(cells) + " |")
+    return "\n".join(lines)
+
+
+def _consistency_rows(
+    baseline: str,
+    treatment: str,
+    seeds: list[int],
+    runs_dir: Path,
+) -> list[str]:
+    """One markdown row per setting for the cross-seed consistency table."""
+
+    rows: list[str] = []
+    for name in SETTINGS_ORDER:
+        result = group_aggregate_over_seeds(baseline, treatment, name, seeds, runs_dir)
+        if "error" in result:
+            continue
+        rows.append(
+            f"| {name} | {result['groups_improved']}/{result['groups_total']} "
+            f"| {result['pairs_consistently_improved']}/{result['pairs_compared']} "
+            f"| {result['pairs_consistently_worsened']}/{result['pairs_compared']} |"
+        )
+    return rows
+
+
+def _group_table(
+    baseline: str,
+    treatment: str,
+    setting: str,
+    seeds: list[int],
+    runs_dir: Path,
+) -> str:
+    """Per-group bidirectional error counts averaged over seeds."""
+
+    result = group_aggregate_over_seeds(baseline, treatment, setting, seeds, runs_dir)
+    if "error" in result:
+        return "_无可比运行_"
+    lines = [
+        "| 组 | " + METHOD_LABELS.get(baseline, baseline) + " | "
+        + METHOD_LABELS.get(treatment, treatment) + " | delta | 方向 |",
+        "|---|---:|---:|---:|---|",
+    ]
+    for entry in result["groups"]:
+        lines.append(
+            f"| `{entry['group']}` | {entry['baseline_mean']:.1f} | "
+            f"{entry['treatment_mean']:.1f} | {entry['delta']:+.1f} "
+            f"| {'改善' if entry['improved'] else '恶化'} |"
+        )
+    lines.append(
+        f"\n组改善 {result['groups_improved']}/{result['groups_total']}；"
+        f"三种子均改善的类别对 {result['pairs_consistently_improved']}/{result['pairs_compared']}；"
+        f"三种子均恶化 {result['pairs_consistently_worsened']}/{result['pairs_compared']}。"
+    )
     return "\n".join(lines)
 
 
@@ -185,9 +230,26 @@ def main() -> None:
         )
         + "\n"
     )
-    for method in ("bert", "supcon", "supcon_hn"):
-        parts.append(f"\n### {METHOD_LABELS.get(method, method)} / 5-shot / seed{args.seed}\n")
-        parts.append(confusion_section(method, "5shot", args.seed, args.runs_dir) + "\n")
+
+    seeds = sorted({r["seed"] for r in rows})
+    parts.append(
+        f"\n### 4.1 跨 {len(seeds)} 个种子的一致性（{args.baseline} → supcon）\n"
+    )
+    parts.append(
+        "单一种子上某个类别对「改善」，可能只是错误转移到了未检查的类别对上。"
+        "因此只有在该类别对上**每个种子都改善**才计为改善。\n"
+    )
+    parts.append(
+        "| Setting | 组改善 | 三种子均改善的类别对 | 三种子均恶化的类别对 |\n|---|---:|---:|---:|\n"
+        + "\n".join(_consistency_rows(args.baseline, "supcon", seeds, args.runs_dir))
+        + "\n"
+    )
+
+    parts.append("\n### 4.2 逐组双向误判数变化（5-shot，三种子均值）\n")
+    parts.append(_group_table(args.baseline, "supcon", "5shot", seeds, args.runs_dir) + "\n")
+
+    parts.append("\n### 4.3 hard negatives 的同一检验（5-shot）\n")
+    parts.append(_group_table("supcon", "supcon_hn", "5shot", seeds, args.runs_dir) + "\n")
 
     bert_vs_supcon = compare(args.baseline, "supcon", "5shot", args.seed, args.runs_dir)
     if "error" not in bert_vs_supcon:
