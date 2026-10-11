@@ -1,0 +1,956 @@
+{
+  "validation": {
+    "accuracy": 0.6191425722831505,
+    "macro_f1": 0.6127647634065861,
+    "micro_f1": 0.6191425722831505,
+    "per_class": {
+      "card_arrival": {
+        "precision": 0.25,
+        "recall": 0.13333333333333333,
+        "f1": 0.17391304347826086,
+        "support": 15
+      },
+      "card_linking": {
+        "precision": 1.0,
+        "recall": 0.7142857142857143,
+        "f1": 0.8333333333333334,
+        "support": 14
+      },
+      "exchange_rate": {
+        "precision": 0.5833333333333334,
+        "recall": 0.6363636363636364,
+        "f1": 0.6086956521739131,
+        "support": 11
+      },
+      "card_payment_wrong_exchange_rate": {
+        "precision": 0.7857142857142857,
+        "recall": 0.6470588235294118,
+        "f1": 0.7096774193548387,
+        "support": 17
+      },
+      "extra_charge_on_statement": {
+        "precision": 0.5238095238095238,
+        "recall": 0.6470588235294118,
+        "f1": 0.5789473684210527,
+        "support": 17
+      },
+      "pending_cash_withdrawal": {
+        "precision": 0.5,
+        "recall": 0.8571428571428571,
+        "f1": 0.631578947368421,
+        "support": 14
+      },
+      "fiat_currency_support": {
+        "precision": 0.8181818181818182,
+        "recall": 0.6923076923076923,
+        "f1": 0.75,
+        "support": 13
+      },
+      "card_delivery_estimate": {
+        "precision": 0.6923076923076923,
+        "recall": 0.8181818181818182,
+        "f1": 0.75,
+        "support": 11
+      },
+      "automatic_top_up": {
+        "precision": 0.8333333333333334,
+        "recall": 0.7692307692307693,
+        "f1": 0.8,
+        "support": 13
+      },
+      "card_not_working": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "support": 11
+      },
+      "exchange_via_app": {
+        "precision": 0.8571428571428571,
+        "recall": 0.5,
+        "f1": 0.631578947368421,
+        "support": 12
+      },
+      "lost_or_stolen_card": {
+        "precision": 0.45454545454545453,
+        "recall": 0.625,
+        "f1": 0.5263157894736842,
+        "support": 8
+      },
+      "age_limit": {
+        "precision": 0.5555555555555556,
+        "recall": 0.9090909090909091,
+        "f1": 0.6896551724137931,
+        "support": 11
+      },
+      "pin_blocked": {
+        "precision": 0.8333333333333334,
+        "recall": 0.8333333333333334,
+        "f1": 0.8333333333333334,
+        "support": 12
+      },
+      "contactless_not_working": {
+        "precision": 0.6,
+        "recall": 1.0,
+        "f1": 0.75,
+        "support": 3
+      },
+      "top_up_by_bank_transfer_charge": {
+        "precision": 0.47058823529411764,
+        "recall": 0.7272727272727273,
+        "f1": 0.5714285714285714,
+        "support": 11
+      },
+      "pending_top_up": {
+        "precision": 0.5,
+        "recall": 0.6,
+        "f1": 0.5454545454545454,
+        "support": 15
+      },
+      "cancel_transfer": {
+        "precision": 0.8571428571428571,
+        "recall": 0.75,
+        "f1": 0.8,
+        "support": 16
+      },
+      "top_up_limits": {
+        "precision": 0.6428571428571429,
+        "recall": 0.9,
+        "f1": 0.75,
+        "support": 10
+      },
+      "wrong_amount_of_cash_received": {
+        "precision": 0.7272727272727273,
+        "recall": 0.8888888888888888,
+        "f1": 0.8,
+        "support": 18
+      },
+      "card_payment_fee_charged": {
+        "precision": 0.5263157894736842,
+        "recall": 0.5263157894736842,
+        "f1": 0.5263157894736842,
+        "support": 19
+      },
+      "transfer_not_received_by_recipient": {
+        "precision": 0.4166666666666667,
+        "recall": 0.29411764705882354,
+        "f1": 0.3448275862068966,
+        "support": 17
+      },
+      "supported_cards_and_currencies": {
+        "precision": 0.6153846153846154,
+        "recall": 0.6153846153846154,
+        "f1": 0.6153846153846154,
+        "support": 13
+      },
+      "getting_virtual_card": {
+        "precision": 0.7777777777777778,
+        "recall": 0.7,
+        "f1": 0.7368421052631579,
+        "support": 10
+      },
+      "card_acceptance": {
+        "precision": 0.16666666666666666,
+        "recall": 0.16666666666666666,
+        "f1": 0.16666666666666666,
+        "support": 6
+      },
+      "top_up_reverted": {
+        "precision": 0.75,
+        "recall": 0.6,
+        "f1": 0.6666666666666666,
+        "support": 15
+      },
+      "balance_not_updated_after_cheque_or_cash_deposit": {
+        "precision": 0.5555555555555556,
+        "recall": 0.5555555555555556,
+        "f1": 0.5555555555555556,
+        "support": 18
+      },
+      "card_payment_not_recognised": {
+        "precision": 0.4117647058823529,
+        "recall": 0.4117647058823529,
+        "f1": 0.4117647058823529,
+        "support": 17
+      },
+      "edit_personal_details": {
+        "precision": 0.75,
+        "recall": 1.0,
+        "f1": 0.8571428571428571,
+        "support": 12
+      },
+      "why_verify_identity": {
+        "precision": 0.8333333333333334,
+        "recall": 0.4166666666666667,
+        "f1": 0.5555555555555556,
+        "support": 12
+      },
+      "unable_to_verify_identity": {
+        "precision": 0.5454545454545454,
+        "recall": 0.6,
+        "f1": 0.5714285714285714,
+        "support": 10
+      },
+      "get_physical_card": {
+        "precision": 0.75,
+        "recall": 0.8181818181818182,
+        "f1": 0.782608695652174,
+        "support": 11
+      },
+      "visa_or_mastercard": {
+        "precision": 0.9230769230769231,
+        "recall": 0.8571428571428571,
+        "f1": 0.8888888888888888,
+        "support": 14
+      },
+      "topping_up_by_card": {
+        "precision": 0.375,
+        "recall": 0.6,
+        "f1": 0.46153846153846156,
+        "support": 10
+      },
+      "disposable_card_limits": {
+        "precision": 0.6428571428571429,
+        "recall": 0.75,
+        "f1": 0.6923076923076923,
+        "support": 12
+      },
+      "compromised_card": {
+        "precision": 0.7142857142857143,
+        "recall": 0.5555555555555556,
+        "f1": 0.625,
+        "support": 9
+      },
+      "atm_support": {
+        "precision": 0.5714285714285714,
+        "recall": 0.4444444444444444,
+        "f1": 0.5,
+        "support": 9
+      },
+      "direct_debit_payment_not_recognised": {
+        "precision": 0.8461538461538461,
+        "recall": 0.6111111111111112,
+        "f1": 0.7096774193548387,
+        "support": 18
+      },
+      "passcode_forgotten": {
+        "precision": 0.9166666666666666,
+        "recall": 1.0,
+        "f1": 0.9565217391304348,
+        "support": 11
+      },
+      "declined_cash_withdrawal": {
+        "precision": 0.3076923076923077,
+        "recall": 0.23529411764705882,
+        "f1": 0.26666666666666666,
+        "support": 17
+      },
+      "pending_card_payment": {
+        "precision": 0.4782608695652174,
+        "recall": 0.6875,
+        "f1": 0.5641025641025641,
+        "support": 16
+      },
+      "lost_or_stolen_phone": {
+        "precision": 0.8461538461538461,
+        "recall": 0.9166666666666666,
+        "f1": 0.88,
+        "support": 12
+      },
+      "request_refund": {
+        "precision": 0.5789473684210527,
+        "recall": 0.6470588235294118,
+        "f1": 0.6111111111111112,
+        "support": 17
+      },
+      "declined_transfer": {
+        "precision": 0.625,
+        "recall": 0.38461538461538464,
+        "f1": 0.47619047619047616,
+        "support": 13
+      },
+      "Refund_not_showing_up": {
+        "precision": 0.7857142857142857,
+        "recall": 0.6875,
+        "f1": 0.7333333333333333,
+        "support": 16
+      },
+      "declined_card_payment": {
+        "precision": 0.5,
+        "recall": 0.3333333333333333,
+        "f1": 0.4,
+        "support": 15
+      },
+      "pending_transfer": {
+        "precision": 0.3684210526315789,
+        "recall": 0.4666666666666667,
+        "f1": 0.4117647058823529,
+        "support": 15
+      },
+      "terminate_account": {
+        "precision": 0.8461538461538461,
+        "recall": 1.0,
+        "f1": 0.9166666666666666,
+        "support": 11
+      },
+      "card_swallowed": {
+        "precision": 0.45454545454545453,
+        "recall": 0.8333333333333334,
+        "f1": 0.5882352941176471,
+        "support": 6
+      },
+      "transaction_charged_twice": {
+        "precision": 0.7647058823529411,
+        "recall": 0.7222222222222222,
+        "f1": 0.7428571428571429,
+        "support": 18
+      },
+      "verify_source_of_funds": {
+        "precision": 0.5625,
+        "recall": 0.8181818181818182,
+        "f1": 0.6666666666666666,
+        "support": 11
+      },
+      "transfer_timing": {
+        "precision": 0.5555555555555556,
+        "recall": 0.7692307692307693,
+        "f1": 0.6451612903225806,
+        "support": 13
+      },
+      "reverted_card_payment?": {
+        "precision": 0.6,
+        "recall": 0.375,
+        "f1": 0.46153846153846156,
+        "support": 16
+      },
+      "change_pin": {
+        "precision": 0.8461538461538461,
+        "recall": 0.9166666666666666,
+        "f1": 0.88,
+        "support": 12
+      },
+      "beneficiary_not_allowed": {
+        "precision": 0.5,
+        "recall": 0.25,
+        "f1": 0.3333333333333333,
+        "support": 16
+      },
+      "transfer_fee_charged": {
+        "precision": 0.5454545454545454,
+        "recall": 0.35294117647058826,
+        "f1": 0.42857142857142855,
+        "support": 17
+      },
+      "receiving_money": {
+        "precision": 0.46153846153846156,
+        "recall": 0.6666666666666666,
+        "f1": 0.5454545454545454,
+        "support": 9
+      },
+      "failed_transfer": {
+        "precision": 0.42857142857142855,
+        "recall": 0.42857142857142855,
+        "f1": 0.42857142857142855,
+        "support": 14
+      },
+      "transfer_into_account": {
+        "precision": 0.5294117647058824,
+        "recall": 0.8181818181818182,
+        "f1": 0.6428571428571429,
+        "support": 11
+      },
+      "verify_top_up": {
+        "precision": 0.631578947368421,
+        "recall": 0.9230769230769231,
+        "f1": 0.75,
+        "support": 13
+      },
+      "getting_spare_card": {
+        "precision": 0.5833333333333334,
+        "recall": 0.5384615384615384,
+        "f1": 0.56,
+        "support": 13
+      },
+      "top_up_by_cash_or_cheque": {
+        "precision": 0.5625,
+        "recall": 0.8181818181818182,
+        "f1": 0.6666666666666666,
+        "support": 11
+      },
+      "order_physical_card": {
+        "precision": 0.75,
+        "recall": 0.5,
+        "f1": 0.6,
+        "support": 12
+      },
+      "virtual_card_not_working": {
+        "precision": 0.375,
+        "recall": 0.75,
+        "f1": 0.5,
+        "support": 4
+      },
+      "wrong_exchange_rate_for_cash_withdrawal": {
+        "precision": 0.5333333333333333,
+        "recall": 0.5,
+        "f1": 0.5161290322580645,
+        "support": 16
+      },
+      "get_disposable_virtual_card": {
+        "precision": 0.5,
+        "recall": 0.4,
+        "f1": 0.4444444444444444,
+        "support": 10
+      },
+      "top_up_failed": {
+        "precision": 0.7142857142857143,
+        "recall": 0.3333333333333333,
+        "f1": 0.45454545454545453,
+        "support": 15
+      },
+      "balance_not_updated_after_bank_transfer": {
+        "precision": 0.6923076923076923,
+        "recall": 0.5294117647058824,
+        "f1": 0.6,
+        "support": 17
+      },
+      "cash_withdrawal_not_recognised": {
+        "precision": 0.8888888888888888,
+        "recall": 0.5,
+        "f1": 0.64,
+        "support": 16
+      },
+      "exchange_charge": {
+        "precision": 0.6470588235294118,
+        "recall": 0.9166666666666666,
+        "f1": 0.7586206896551724,
+        "support": 12
+      },
+      "top_up_by_card_charge": {
+        "precision": 0.7272727272727273,
+        "recall": 0.7272727272727273,
+        "f1": 0.7272727272727273,
+        "support": 11
+      },
+      "activate_my_card": {
+        "precision": 0.7647058823529411,
+        "recall": 0.8125,
+        "f1": 0.7878787878787878,
+        "support": 16
+      },
+      "cash_withdrawal_charge": {
+        "precision": 0.5,
+        "recall": 0.3333333333333333,
+        "f1": 0.4,
+        "support": 18
+      },
+      "card_about_to_expire": {
+        "precision": 0.6923076923076923,
+        "recall": 0.6923076923076923,
+        "f1": 0.6923076923076923,
+        "support": 13
+      },
+      "apple_pay_or_google_pay": {
+        "precision": 0.8333333333333334,
+        "recall": 0.7692307692307693,
+        "f1": 0.8,
+        "support": 13
+      },
+      "verify_my_identity": {
+        "precision": 0.5,
+        "recall": 0.7,
+        "f1": 0.5833333333333334,
+        "support": 10
+      },
+      "country_support": {
+        "precision": 0.75,
+        "recall": 0.6923076923076923,
+        "f1": 0.72,
+        "support": 13
+      }
+    }
+  },
+  "test": {
+    "accuracy": 0.6678571428571428,
+    "macro_f1": 0.6621640562387257,
+    "micro_f1": 0.6678571428571428,
+    "per_class": {
+      "card_arrival": {
+        "precision": 0.48717948717948717,
+        "recall": 0.475,
+        "f1": 0.4810126582278481,
+        "support": 40
+      },
+      "card_linking": {
+        "precision": 0.7692307692307693,
+        "recall": 0.75,
+        "f1": 0.759493670886076,
+        "support": 40
+      },
+      "exchange_rate": {
+        "precision": 0.7619047619047619,
+        "recall": 0.8,
+        "f1": 0.7804878048780488,
+        "support": 40
+      },
+      "card_payment_wrong_exchange_rate": {
+        "precision": 0.7647058823529411,
+        "recall": 0.65,
+        "f1": 0.7027027027027027,
+        "support": 40
+      },
+      "extra_charge_on_statement": {
+        "precision": 0.5636363636363636,
+        "recall": 0.775,
+        "f1": 0.6526315789473685,
+        "support": 40
+      },
+      "pending_cash_withdrawal": {
+        "precision": 0.5614035087719298,
+        "recall": 0.8,
+        "f1": 0.6597938144329897,
+        "support": 40
+      },
+      "fiat_currency_support": {
+        "precision": 0.8518518518518519,
+        "recall": 0.575,
+        "f1": 0.6865671641791045,
+        "support": 40
+      },
+      "card_delivery_estimate": {
+        "precision": 0.5833333333333334,
+        "recall": 0.525,
+        "f1": 0.5526315789473685,
+        "support": 40
+      },
+      "automatic_top_up": {
+        "precision": 0.9459459459459459,
+        "recall": 0.875,
+        "f1": 0.9090909090909091,
+        "support": 40
+      },
+      "card_not_working": {
+        "precision": 0.43333333333333335,
+        "recall": 0.325,
+        "f1": 0.37142857142857144,
+        "support": 40
+      },
+      "exchange_via_app": {
+        "precision": 0.5588235294117647,
+        "recall": 0.475,
+        "f1": 0.5135135135135135,
+        "support": 40
+      },
+      "lost_or_stolen_card": {
+        "precision": 0.5952380952380952,
+        "recall": 0.625,
+        "f1": 0.6097560975609756,
+        "support": 40
+      },
+      "age_limit": {
+        "precision": 0.7307692307692307,
+        "recall": 0.95,
+        "f1": 0.8260869565217391,
+        "support": 40
+      },
+      "pin_blocked": {
+        "precision": 0.84375,
+        "recall": 0.675,
+        "f1": 0.75,
+        "support": 40
+      },
+      "contactless_not_working": {
+        "precision": 0.8571428571428571,
+        "recall": 0.9,
+        "f1": 0.8780487804878049,
+        "support": 40
+      },
+      "top_up_by_bank_transfer_charge": {
+        "precision": 0.7142857142857143,
+        "recall": 0.625,
+        "f1": 0.6666666666666666,
+        "support": 40
+      },
+      "pending_top_up": {
+        "precision": 0.5365853658536586,
+        "recall": 0.55,
+        "f1": 0.5432098765432098,
+        "support": 40
+      },
+      "cancel_transfer": {
+        "precision": 0.717391304347826,
+        "recall": 0.825,
+        "f1": 0.7674418604651163,
+        "support": 40
+      },
+      "top_up_limits": {
+        "precision": 0.5714285714285714,
+        "recall": 0.9,
+        "f1": 0.6990291262135923,
+        "support": 40
+      },
+      "wrong_amount_of_cash_received": {
+        "precision": 0.7291666666666666,
+        "recall": 0.875,
+        "f1": 0.7954545454545454,
+        "support": 40
+      },
+      "card_payment_fee_charged": {
+        "precision": 0.5142857142857142,
+        "recall": 0.45,
+        "f1": 0.48,
+        "support": 40
+      },
+      "transfer_not_received_by_recipient": {
+        "precision": 0.45161290322580644,
+        "recall": 0.35,
+        "f1": 0.39436619718309857,
+        "support": 40
+      },
+      "supported_cards_and_currencies": {
+        "precision": 0.6382978723404256,
+        "recall": 0.75,
+        "f1": 0.6896551724137931,
+        "support": 40
+      },
+      "getting_virtual_card": {
+        "precision": 0.7045454545454546,
+        "recall": 0.775,
+        "f1": 0.7380952380952381,
+        "support": 40
+      },
+      "card_acceptance": {
+        "precision": 0.627906976744186,
+        "recall": 0.675,
+        "f1": 0.6506024096385542,
+        "support": 40
+      },
+      "top_up_reverted": {
+        "precision": 0.5476190476190477,
+        "recall": 0.575,
+        "f1": 0.5609756097560976,
+        "support": 40
+      },
+      "balance_not_updated_after_cheque_or_cash_deposit": {
+        "precision": 0.6296296296296297,
+        "recall": 0.425,
+        "f1": 0.5074626865671642,
+        "support": 40
+      },
+      "card_payment_not_recognised": {
+        "precision": 0.45,
+        "recall": 0.45,
+        "f1": 0.45,
+        "support": 40
+      },
+      "edit_personal_details": {
+        "precision": 0.8043478260869565,
+        "recall": 0.925,
+        "f1": 0.8604651162790697,
+        "support": 40
+      },
+      "why_verify_identity": {
+        "precision": 0.8095238095238095,
+        "recall": 0.425,
+        "f1": 0.5573770491803278,
+        "support": 40
+      },
+      "unable_to_verify_identity": {
+        "precision": 0.6923076923076923,
+        "recall": 0.45,
+        "f1": 0.5454545454545454,
+        "support": 40
+      },
+      "get_physical_card": {
+        "precision": 0.6181818181818182,
+        "recall": 0.85,
+        "f1": 0.7157894736842105,
+        "support": 40
+      },
+      "visa_or_mastercard": {
+        "precision": 0.9487179487179487,
+        "recall": 0.925,
+        "f1": 0.9367088607594937,
+        "support": 40
+      },
+      "topping_up_by_card": {
+        "precision": 0.4146341463414634,
+        "recall": 0.425,
+        "f1": 0.41975308641975306,
+        "support": 40
+      },
+      "disposable_card_limits": {
+        "precision": 0.7142857142857143,
+        "recall": 0.75,
+        "f1": 0.7317073170731707,
+        "support": 40
+      },
+      "compromised_card": {
+        "precision": 0.56,
+        "recall": 0.7,
+        "f1": 0.6222222222222222,
+        "support": 40
+      },
+      "atm_support": {
+        "precision": 0.6842105263157895,
+        "recall": 0.65,
+        "f1": 0.6666666666666666,
+        "support": 40
+      },
+      "direct_debit_payment_not_recognised": {
+        "precision": 0.9655172413793104,
+        "recall": 0.7,
+        "f1": 0.8115942028985508,
+        "support": 40
+      },
+      "passcode_forgotten": {
+        "precision": 0.926829268292683,
+        "recall": 0.95,
+        "f1": 0.9382716049382716,
+        "support": 40
+      },
+      "declined_cash_withdrawal": {
+        "precision": 0.34146341463414637,
+        "recall": 0.35,
+        "f1": 0.345679012345679,
+        "support": 40
+      },
+      "pending_card_payment": {
+        "precision": 0.6904761904761905,
+        "recall": 0.725,
+        "f1": 0.7073170731707317,
+        "support": 40
+      },
+      "lost_or_stolen_phone": {
+        "precision": 0.775,
+        "recall": 0.775,
+        "f1": 0.775,
+        "support": 40
+      },
+      "request_refund": {
+        "precision": 0.7647058823529411,
+        "recall": 0.65,
+        "f1": 0.7027027027027027,
+        "support": 40
+      },
+      "declined_transfer": {
+        "precision": 0.48,
+        "recall": 0.6,
+        "f1": 0.5333333333333333,
+        "support": 40
+      },
+      "Refund_not_showing_up": {
+        "precision": 0.7804878048780488,
+        "recall": 0.8,
+        "f1": 0.7901234567901234,
+        "support": 40
+      },
+      "declined_card_payment": {
+        "precision": 0.6,
+        "recall": 0.45,
+        "f1": 0.5142857142857142,
+        "support": 40
+      },
+      "pending_transfer": {
+        "precision": 0.475,
+        "recall": 0.475,
+        "f1": 0.475,
+        "support": 40
+      },
+      "terminate_account": {
+        "precision": 0.8292682926829268,
+        "recall": 0.85,
+        "f1": 0.8395061728395061,
+        "support": 40
+      },
+      "card_swallowed": {
+        "precision": 0.6153846153846154,
+        "recall": 0.8,
+        "f1": 0.6956521739130435,
+        "support": 40
+      },
+      "transaction_charged_twice": {
+        "precision": 0.7804878048780488,
+        "recall": 0.8,
+        "f1": 0.7901234567901234,
+        "support": 40
+      },
+      "verify_source_of_funds": {
+        "precision": 0.6785714285714286,
+        "recall": 0.95,
+        "f1": 0.7916666666666666,
+        "support": 40
+      },
+      "transfer_timing": {
+        "precision": 0.5957446808510638,
+        "recall": 0.7,
+        "f1": 0.6436781609195402,
+        "support": 40
+      },
+      "reverted_card_payment?": {
+        "precision": 0.5365853658536586,
+        "recall": 0.55,
+        "f1": 0.5432098765432098,
+        "support": 40
+      },
+      "change_pin": {
+        "precision": 0.7894736842105263,
+        "recall": 0.75,
+        "f1": 0.7692307692307693,
+        "support": 40
+      },
+      "beneficiary_not_allowed": {
+        "precision": 0.8571428571428571,
+        "recall": 0.3,
+        "f1": 0.4444444444444444,
+        "support": 40
+      },
+      "transfer_fee_charged": {
+        "precision": 0.6818181818181818,
+        "recall": 0.375,
+        "f1": 0.4838709677419355,
+        "support": 40
+      },
+      "receiving_money": {
+        "precision": 0.813953488372093,
+        "recall": 0.875,
+        "f1": 0.8433734939759037,
+        "support": 40
+      },
+      "failed_transfer": {
+        "precision": 0.6296296296296297,
+        "recall": 0.425,
+        "f1": 0.5074626865671642,
+        "support": 40
+      },
+      "transfer_into_account": {
+        "precision": 0.5357142857142857,
+        "recall": 0.75,
+        "f1": 0.625,
+        "support": 40
+      },
+      "verify_top_up": {
+        "precision": 0.7708333333333334,
+        "recall": 0.925,
+        "f1": 0.8409090909090909,
+        "support": 40
+      },
+      "getting_spare_card": {
+        "precision": 0.717948717948718,
+        "recall": 0.7,
+        "f1": 0.7088607594936709,
+        "support": 40
+      },
+      "top_up_by_cash_or_cheque": {
+        "precision": 0.6666666666666666,
+        "recall": 0.7,
+        "f1": 0.6829268292682927,
+        "support": 40
+      },
+      "order_physical_card": {
+        "precision": 0.7692307692307693,
+        "recall": 0.5,
+        "f1": 0.6060606060606061,
+        "support": 40
+      },
+      "virtual_card_not_working": {
+        "precision": 0.7111111111111111,
+        "recall": 0.8,
+        "f1": 0.7529411764705882,
+        "support": 40
+      },
+      "wrong_exchange_rate_for_cash_withdrawal": {
+        "precision": 0.4444444444444444,
+        "recall": 0.3,
+        "f1": 0.3582089552238806,
+        "support": 40
+      },
+      "get_disposable_virtual_card": {
+        "precision": 0.7941176470588235,
+        "recall": 0.675,
+        "f1": 0.7297297297297297,
+        "support": 40
+      },
+      "top_up_failed": {
+        "precision": 0.625,
+        "recall": 0.5,
+        "f1": 0.5555555555555556,
+        "support": 40
+      },
+      "balance_not_updated_after_bank_transfer": {
+        "precision": 0.5365853658536586,
+        "recall": 0.55,
+        "f1": 0.5432098765432098,
+        "support": 40
+      },
+      "cash_withdrawal_not_recognised": {
+        "precision": 0.7241379310344828,
+        "recall": 0.525,
+        "f1": 0.6086956521739131,
+        "support": 40
+      },
+      "exchange_charge": {
+        "precision": 0.6666666666666666,
+        "recall": 0.65,
+        "f1": 0.6582278481012658,
+        "support": 40
+      },
+      "top_up_by_card_charge": {
+        "precision": 0.6923076923076923,
+        "recall": 0.675,
+        "f1": 0.6835443037974683,
+        "support": 40
+      },
+      "activate_my_card": {
+        "precision": 0.8409090909090909,
+        "recall": 0.925,
+        "f1": 0.8809523809523809,
+        "support": 40
+      },
+      "cash_withdrawal_charge": {
+        "precision": 0.5416666666666666,
+        "recall": 0.65,
+        "f1": 0.5909090909090909,
+        "support": 40
+      },
+      "card_about_to_expire": {
+        "precision": 0.7659574468085106,
+        "recall": 0.9,
+        "f1": 0.8275862068965517,
+        "support": 40
+      },
+      "apple_pay_or_google_pay": {
+        "precision": 0.9230769230769231,
+        "recall": 0.9,
+        "f1": 0.9113924050632911,
+        "support": 40
+      },
+      "verify_my_identity": {
+        "precision": 0.46875,
+        "recall": 0.75,
+        "f1": 0.5769230769230769,
+        "support": 40
+      },
+      "country_support": {
+        "precision": 0.8484848484848485,
+        "recall": 0.7,
+        "f1": 0.7671232876712328,
+        "support": 40
+      }
+    }
+  },
+  "train_seconds": 0.03454179999243934,
+  "test_inference_seconds": 0.026098000002093613,
+  "test_examples_per_second": 118016.70625154872,
+  "validation_health": {
+    "predicted_class_count": 77,
+    "zero_f1_class_count": 1,
+    "prediction_distribution_entropy": 0.9875314175442239,
+    "collapsed": false
+  },
+  "test_health": {
+    "predicted_class_count": 77,
+    "zero_f1_class_count": 0,
+    "prediction_distribution_entropy": 0.9935119321721079,
+    "collapsed": false
+  },
+  "run_flagged_as_collapsed": false
+}

@@ -1,0 +1,41 @@
+{
+  "method": "bert",
+  "setting": "10shot",
+  "seed": 43,
+  "model_name": "D:\\projects\\Banking77-FinIntent-SupCon\\models\\bert-base-uncased",
+  "train_rows": 770,
+  "validation_rows": 1003,
+  "test_rows": 3080,
+  "epochs": 5.0,
+  "batch_size": 32,
+  "learning_rate": 5e-05,
+  "weight_decay": 0.01,
+  "warmup_ratio": 0.1,
+  "max_length": 64,
+  "early_stopping_patience": 2,
+  "early_stopping_threshold": 0.0001,
+  "training_schedule": {
+    "strategy": "steps",
+    "min_steps": 300,
+    "max_steps": 1000,
+    "eval_steps": 50
+  },
+  "device": "cuda",
+  "precision": {
+    "requested": "bf16",
+    "resolved": "bf16",
+    "reason": "explicitly requested"
+  },
+  "freeze_layers": 0,
+  "attn_implementation": "eager",
+  "local_files_only": true,
+  "seed_info": {
+    "seed": 43,
+    "torch_available": true,
+    "torch_version": "2.14.0+cu130"
+  },
+  "config_provenance": {
+    "selected_candidate": "bf16_lr5e5",
+    "selected_on": "validation Macro-F1 over seeds [42]"
+  }
+}

@@ -116,12 +116,17 @@ outputs/runs/**/trainer_state.json
 outputs/runs/**/optimizer.pt
 outputs/runs/**/scheduler.pt
 
-# Legacy/generated output locations
+# Legacy/generated output locations.
+# outputs/analysis and outputs/figures are intermediate renderings.
+# outputs/results holds the aggregated mean +/- std tables and is the source of
+# every number quoted in the report, so it stays tracked.
 outputs/models/
 outputs/analysis/
 outputs/figures/
-outputs/results/
 
 # Generic temporary files inside outputs
 outputs/**/*.tmp
 outputs/**/*.log
+
+# Archived pre-reproducibility runs, kept locally for reference only.
+outputs/_archive_pre_repro/
