@@ -110,18 +110,32 @@ def kwargs_for(method: str, args: argparse.Namespace) -> dict[str, Any]:
     return values
 
 
-def _frozen_config_overrides(path: str | None) -> dict[str, Any]:
-    """Load a frozen hyperparameter file produced by the validation-only sweep."""
+def _frozen_config(path: str | None, method: str, setting: str) -> dict[str, Any]:
+    """Load the frozen hyperparameters for one (method, setting).
+
+    The file produced by ``analysis.tune_bert`` is keyed by setting, because
+    the best learning rate for 5-shot is not necessarily the best for full.
+    Applying one set of values everywhere would silently ignore that.
+    """
 
     if path is None:
         return {}
     payload = json.loads(Path(path).read_text(encoding="utf-8"))
-    return payload if isinstance(payload, dict) else {}
+    if not isinstance(payload, dict):
+        return {}
+    method_section = payload.get(method, {})
+    if not isinstance(method_section, dict):
+        return {}
+    per_setting = method_section.get(setting)
+    if isinstance(per_setting, dict):
+        return per_setting
+    # A flat section (no setting key) applies to every setting.
+    flat = {key: value for key, value in method_section.items() if not isinstance(value, dict)}
+    return flat
 
 
 def main() -> None:
     args = parse_args()
-    overrides = _frozen_config_overrides(args.config)
     methods = list(RUNNERS) if args.method == "all" else [args.method]
     settings = list(SETTINGS) if args.setting == "all" else [args.setting]
 
@@ -130,6 +144,9 @@ def main() -> None:
 
     for method in methods:
         for setting in settings:
+            overrides = _frozen_config(args.config, method, setting)
+            if overrides:
+                print(f"frozen config for {method}/{setting}: {overrides}")
             for seed in args.seed:
                 metrics_path = run_dir(method, setting, seed) / "metrics.json"
                 if metrics_path.exists() and not args.overwrite:
@@ -140,7 +157,7 @@ def main() -> None:
                 for stale in ("failure.json", "status.json"):
                     (artifacts.path / stale).unlink(missing_ok=True)
                 print(f"run {method}/{setting}/seed{seed}")
-                call_kwargs = {**kwargs_for(method, args), **overrides.get(method, {})}
+                call_kwargs = {**kwargs_for(method, args), **overrides}
                 try:
                     result = RUNNERS[method](setting, seed, **call_kwargs)
                 except Exception as exc:  # noqa: BLE001 - recorded, then reported below

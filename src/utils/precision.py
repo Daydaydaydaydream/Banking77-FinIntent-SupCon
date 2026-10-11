@@ -21,6 +21,11 @@ from typing import Any
 
 import torch
 
+try:  # transformers is a project dependency, but keep this module importable
+    from transformers import TrainerCallback
+except ImportError:  # pragma: no cover - only hit outside a full install
+    TrainerCallback = object  # type: ignore[assignment,misc]
+
 
 PRECISIONS = ("fp32", "bf16", "fp16")
 DEFAULT_PRECISION = "auto"
@@ -61,7 +66,7 @@ def precision_flags(precision: str) -> dict[str, bool]:
     }
 
 
-class GradientHealthCallback:
+class GradientHealthCallback(TrainerCallback):
     """Record non-finite gradient norms instead of training through them.
 
     HF Trainer already skips the optimizer step when ``grad_norm`` is not
@@ -71,6 +76,7 @@ class GradientHealthCallback:
     """
 
     def __init__(self) -> None:
+        super().__init__()
         self.violations: list[dict[str, Any]] = []
         self.checked_steps = 0
 

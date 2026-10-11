@@ -120,18 +120,31 @@ def select(rows: list[dict[str, Any]]) -> dict[str, Any]:
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--setting", choices=[*SETTINGS, "all"], default="5shot")
+    parser.add_argument(
+        "--setting",
+        choices=[*SETTINGS, "all"],
+        default=["5shot"],
+        nargs="+",
+        help="one or more settings; 'all' expands to every budget",
+    )
     parser.add_argument("--seed", type=int, nargs="+", default=[DEFAULT_SEED])
     parser.add_argument("--freeze", action="store_true", help="write configs/bert_frozen.json")
     parser.add_argument("--output", type=Path, default=ROOT / "outputs" / "tuning")
     return parser.parse_args()
 
 
+def _expand_settings(values: list[str]) -> list[str]:
+    expanded: list[str] = []
+    for value in values:
+        expanded.extend(list(SETTINGS) if value == "all" else [value])
+    return [setting for setting in SETTINGS if setting in set(expanded)]
+
+
 def main() -> None:
     from baselines import bert_ft  # noqa: F401 - validate imports before a long sweep
 
     args = parse_args()
-    settings = list(SETTINGS) if args.setting == "all" else [args.setting]
+    settings = _expand_settings(list(args.setting))
     args.output.mkdir(parents=True, exist_ok=True)
 
     frozen: dict[str, Any] = {}
