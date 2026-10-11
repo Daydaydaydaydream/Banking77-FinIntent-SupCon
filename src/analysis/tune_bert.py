@@ -28,16 +28,31 @@ from config import DEFAULT_SEED, LOCAL_BERT_MODEL, ROOT, SETTINGS
 FROZEN_PATH = ROOT / "configs" / "bert_frozen.json"
 
 
-# Deliberately small grid: each point costs a full training run, and the goal
-# is to find a configuration that does not collapse rather than to squeeze the
-# last decimal out of the validation split.
-CANDIDATES: list[dict[str, Any]] = [
+# Candidate grid for the few-shot budgets.  Deliberately small: each point
+# costs a full training run, and the goal is to find a configuration that does
+# not collapse rather than to squeeze the last decimal out of the split.
+FEW_SHOT_CANDIDATES: list[dict[str, Any]] = [
     {"name": "baseline_fp32", "precision": "fp32", "learning_rate": 2e-5, "freeze_layers": 0},
     {"name": "bf16", "precision": "bf16", "learning_rate": 2e-5, "freeze_layers": 0},
     {"name": "bf16_lr3e5", "precision": "bf16", "learning_rate": 3e-5, "freeze_layers": 0},
     {"name": "bf16_freeze6", "precision": "bf16", "learning_rate": 3e-5, "freeze_layers": 6},
     {"name": "bf16_lr5e5", "precision": "bf16", "learning_rate": 5e-5, "freeze_layers": 0},
 ]
+
+# The full budget trains for epochs, not steps, so only the learning rate and
+# precision vary here.  The historical full run scored 0.872 against TF-IDF's
+# 0.888, which suggests it was also under-tuned rather than genuinely weaker.
+FULL_CANDIDATES: list[dict[str, Any]] = [
+    {"name": "bf16_lr2e5", "precision": "bf16", "learning_rate": 2e-5, "freeze_layers": 0},
+    {"name": "bf16_lr3e5", "precision": "bf16", "learning_rate": 3e-5, "freeze_layers": 0},
+    {"name": "bf16_lr5e5", "precision": "bf16", "learning_rate": 5e-5, "freeze_layers": 0},
+]
+
+CANDIDATES = FEW_SHOT_CANDIDATES
+
+
+def candidates_for(setting: str) -> list[dict[str, Any]]:
+    return FULL_CANDIDATES if setting == "full" else FEW_SHOT_CANDIDATES
 
 
 def run_candidate(setting: str, seed: int, candidate: dict[str, Any]) -> dict[str, Any]:
@@ -151,7 +166,7 @@ def main() -> None:
     for setting in settings:
         all_rows: list[dict[str, Any]] = []
         for seed in args.seed:
-            all_rows.extend(sweep(setting, seed, CANDIDATES))
+            all_rows.extend(sweep(setting, seed, candidates_for(setting)))
 
         # Aggregate per candidate across seeds before selecting, so one lucky
         # split cannot decide the configuration.

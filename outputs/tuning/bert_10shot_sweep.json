@@ -1,0 +1,147 @@
+{
+  "rows": [
+    {
+      "candidate": "baseline_fp32",
+      "precision": "fp32",
+      "learning_rate": 2e-05,
+      "freeze_layers": 0,
+      "validation_macro_f1": 0.7382065788413,
+      "validation_health": {
+        "predicted_class_count": 77,
+        "zero_f1_class_count": 0,
+        "prediction_distribution_entropy": 0.9836439765046581,
+        "collapsed": false
+      },
+      "gradient_health": {
+        "gradient_checks": 20,
+        "non_finite_grad_norm_events": 0,
+        "non_finite_grad_norm_steps": []
+      },
+      "optimizer_steps": 1000,
+      "best_checkpoint": "model\\checkpoints\\checkpoint-950",
+      "test_macro_f1_not_used_for_selection": 0.7591157069045844
+    },
+    {
+      "candidate": "bf16",
+      "precision": "bf16",
+      "learning_rate": 2e-05,
+      "freeze_layers": 0,
+      "validation_macro_f1": 0.7339978118952476,
+      "validation_health": {
+        "predicted_class_count": 77,
+        "zero_f1_class_count": 0,
+        "prediction_distribution_entropy": 0.981432816262539,
+        "collapsed": false
+      },
+      "gradient_health": {
+        "gradient_checks": 19,
+        "non_finite_grad_norm_events": 0,
+        "non_finite_grad_norm_steps": []
+      },
+      "optimizer_steps": 950,
+      "best_checkpoint": "model\\checkpoints\\checkpoint-850",
+      "test_macro_f1_not_used_for_selection": 0.75257064462994
+    },
+    {
+      "candidate": "bf16_lr3e5",
+      "precision": "bf16",
+      "learning_rate": 3e-05,
+      "freeze_layers": 0,
+      "validation_macro_f1": 0.7633570134867778,
+      "validation_health": {
+        "predicted_class_count": 77,
+        "zero_f1_class_count": 0,
+        "prediction_distribution_entropy": 0.9847223557946088,
+        "collapsed": false
+      },
+      "gradient_health": {
+        "gradient_checks": 19,
+        "non_finite_grad_norm_events": 0,
+        "non_finite_grad_norm_steps": []
+      },
+      "optimizer_steps": 950,
+      "best_checkpoint": "model\\checkpoints\\checkpoint-850",
+      "test_macro_f1_not_used_for_selection": 0.7977114042088116
+    },
+    {
+      "candidate": "bf16_freeze6",
+      "precision": "bf16",
+      "learning_rate": 3e-05,
+      "freeze_layers": 6,
+      "validation_macro_f1": 0.7500499331443716,
+      "validation_health": {
+        "predicted_class_count": 77,
+        "zero_f1_class_count": 0,
+        "prediction_distribution_entropy": 0.9845507763808519,
+        "collapsed": false
+      },
+      "gradient_health": {
+        "gradient_checks": 16,
+        "non_finite_grad_norm_events": 0,
+        "non_finite_grad_norm_steps": []
+      },
+      "optimizer_steps": 800,
+      "best_checkpoint": "model\\checkpoints\\checkpoint-700",
+      "test_macro_f1_not_used_for_selection": 0.7767739247197835
+    },
+    {
+      "candidate": "bf16_lr5e5",
+      "precision": "bf16",
+      "learning_rate": 5e-05,
+      "freeze_layers": 0,
+      "validation_macro_f1": 0.7717037143454963,
+      "validation_health": {
+        "predicted_class_count": 77,
+        "zero_f1_class_count": 0,
+        "prediction_distribution_entropy": 0.9850955242428658,
+        "collapsed": false
+      },
+      "gradient_health": {
+        "gradient_checks": 13,
+        "non_finite_grad_norm_events": 0,
+        "non_finite_grad_norm_steps": []
+      },
+      "optimizer_steps": 650,
+      "best_checkpoint": "model\\checkpoints\\checkpoint-550",
+      "test_macro_f1_not_used_for_selection": 0.8126188584030686
+    }
+  ],
+  "summary": {
+    "baseline_fp32": {
+      "validation_macro_f1_mean": 0.7382065788413,
+      "any_collapsed": false,
+      "precision": "fp32",
+      "learning_rate": 2e-05,
+      "freeze_layers": 0
+    },
+    "bf16": {
+      "validation_macro_f1_mean": 0.7339978118952476,
+      "any_collapsed": false,
+      "precision": "bf16",
+      "learning_rate": 2e-05,
+      "freeze_layers": 0
+    },
+    "bf16_lr3e5": {
+      "validation_macro_f1_mean": 0.7633570134867778,
+      "any_collapsed": false,
+      "precision": "bf16",
+      "learning_rate": 3e-05,
+      "freeze_layers": 0
+    },
+    "bf16_freeze6": {
+      "validation_macro_f1_mean": 0.7500499331443716,
+      "any_collapsed": false,
+      "precision": "bf16",
+      "learning_rate": 3e-05,
+      "freeze_layers": 6
+    },
+    "bf16_lr5e5": {
+      "validation_macro_f1_mean": 0.7717037143454963,
+      "any_collapsed": false,
+      "precision": "bf16",
+      "learning_rate": 5e-05,
+      "freeze_layers": 0
+    }
+  },
+  "selected": "bf16_lr5e5"
+}

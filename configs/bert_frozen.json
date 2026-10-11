@@ -9,6 +9,36 @@
       "warmup_ratio": 0.1,
       "selected_on": "validation Macro-F1 over seeds [42]",
       "selected_candidate": "bf16_lr5e5"
+    },
+    "10shot": {
+      "precision": "bf16",
+      "learning_rate": 5e-05,
+      "freeze_layers": 0,
+      "epochs": 5.0,
+      "batch_size": 32,
+      "warmup_ratio": 0.1,
+      "selected_on": "validation Macro-F1 over seeds [42]",
+      "selected_candidate": "bf16_lr5e5"
+    },
+    "20shot": {
+      "precision": "bf16",
+      "learning_rate": 5e-05,
+      "freeze_layers": 0,
+      "epochs": 5.0,
+      "batch_size": 32,
+      "warmup_ratio": 0.1,
+      "selected_on": "validation Macro-F1 over seeds [42]",
+      "selected_candidate": "bf16_lr5e5"
+    },
+    "full": {
+      "precision": "bf16",
+      "learning_rate": 5e-05,
+      "freeze_layers": 0,
+      "epochs": 10.0,
+      "batch_size": 32,
+      "warmup_ratio": 0.1,
+      "selected_on": "validation Macro-F1 over seeds [42]",
+      "selected_candidate": "bf16_lr5e5"
     }
   }
 }

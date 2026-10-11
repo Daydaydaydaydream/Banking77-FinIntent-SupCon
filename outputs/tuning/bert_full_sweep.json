@@ -1,0 +1,91 @@
+{
+  "rows": [
+    {
+      "candidate": "bf16_lr2e5",
+      "precision": "bf16",
+      "learning_rate": 2e-05,
+      "freeze_layers": 0,
+      "validation_macro_f1": 0.9033574642262315,
+      "validation_health": {
+        "predicted_class_count": 77,
+        "zero_f1_class_count": 0,
+        "prediction_distribution_entropy": 0.9888303756987634,
+        "collapsed": false
+      },
+      "gradient_health": {
+        "gradient_checks": 9,
+        "non_finite_grad_norm_events": 0,
+        "non_finite_grad_norm_steps": []
+      },
+      "optimizer_steps": 2538,
+      "best_checkpoint": "model\\checkpoints\\checkpoint-1974",
+      "test_macro_f1_not_used_for_selection": 0.9273868383911328
+    },
+    {
+      "candidate": "bf16_lr3e5",
+      "precision": "bf16",
+      "learning_rate": 3e-05,
+      "freeze_layers": 0,
+      "validation_macro_f1": 0.9068285545155494,
+      "validation_health": {
+        "predicted_class_count": 77,
+        "zero_f1_class_count": 0,
+        "prediction_distribution_entropy": 0.9900117985964808,
+        "collapsed": false
+      },
+      "gradient_health": {
+        "gradient_checks": 6,
+        "non_finite_grad_norm_events": 0,
+        "non_finite_grad_norm_steps": []
+      },
+      "optimizer_steps": 1692,
+      "best_checkpoint": "model\\checkpoints\\checkpoint-1692",
+      "test_macro_f1_not_used_for_selection": 0.9263901492732876
+    },
+    {
+      "candidate": "bf16_lr5e5",
+      "precision": "bf16",
+      "learning_rate": 5e-05,
+      "freeze_layers": 0,
+      "validation_macro_f1": 0.9087614072844612,
+      "validation_health": {
+        "predicted_class_count": 77,
+        "zero_f1_class_count": 0,
+        "prediction_distribution_entropy": 0.9875180816562563,
+        "collapsed": false
+      },
+      "gradient_health": {
+        "gradient_checks": 6,
+        "non_finite_grad_norm_events": 0,
+        "non_finite_grad_norm_steps": []
+      },
+      "optimizer_steps": 1692,
+      "best_checkpoint": "model\\checkpoints\\checkpoint-1128",
+      "test_macro_f1_not_used_for_selection": 0.9177194153412975
+    }
+  ],
+  "summary": {
+    "bf16_lr2e5": {
+      "validation_macro_f1_mean": 0.9033574642262315,
+      "any_collapsed": false,
+      "precision": "bf16",
+      "learning_rate": 2e-05,
+      "freeze_layers": 0
+    },
+    "bf16_lr3e5": {
+      "validation_macro_f1_mean": 0.9068285545155494,
+      "any_collapsed": false,
+      "precision": "bf16",
+      "learning_rate": 3e-05,
+      "freeze_layers": 0
+    },
+    "bf16_lr5e5": {
+      "validation_macro_f1_mean": 0.9087614072844612,
+      "any_collapsed": false,
+      "precision": "bf16",
+      "learning_rate": 5e-05,
+      "freeze_layers": 0
+    }
+  },
+  "selected": "bf16_lr5e5"
+}
