@@ -19,6 +19,11 @@ DEFAULT_SEED = 42
 BERT_MODEL = "bert-base-uncased"
 SETFIT_MODEL = "sentence-transformers/all-MiniLM-L6-v2"
 
+# Checked-out snapshots.  Using the local paths keeps every run offline and
+# removes the dependency on hub availability during an experiment sweep.
+LOCAL_BERT_MODEL = str(ROOT / "models" / "bert-base-uncased")
+LOCAL_SETFIT_MODEL = str(ROOT / "models" / "all-MiniLM-L6-v2")
+
 
 def run_dir(method: str, setting: str, seed: int) -> Path:
     return RUNS_DIR / method / setting / f"seed{seed}"

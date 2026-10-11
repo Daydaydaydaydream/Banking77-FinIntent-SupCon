@@ -6,8 +6,10 @@ import csv
 import importlib.metadata
 import json
 import platform
+import shutil
 import sys
-from dataclasses import dataclass
+import traceback
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
@@ -62,6 +64,7 @@ class RunArtifacts:
     method: str
     setting: str
     seed: int
+    keep_checkpoints: bool = field(default=False)
 
     def __post_init__(self) -> None:
         self.path = run_dir(self.method, self.setting, self.seed)
@@ -77,9 +80,59 @@ class RunArtifacts:
         path.mkdir(parents=True, exist_ok=True)
         return path
 
+    @property
+    def checkpoint_dir(self) -> Path:
+        """Where the HF Trainer writes intermediate checkpoints."""
+
+        path = self.path / "model" / "checkpoints"
+        path.mkdir(parents=True, exist_ok=True)
+        return path
+
+    def cleanup_checkpoints(self) -> None:
+        """Delete intermediate trainer checkpoints.
+
+        With ``save_total_limit=1`` the trainer still leaves one full
+        checkpoint on disk (weights, optimizer and scheduler state).  For BERT
+        that is roughly 1.3 GB per run and it is fully reproducible from
+        ``config.json``, so it is removed after the best model is saved.
+        """
+
+        if self.keep_checkpoints:
+            return
+        checkpoint_root = self.path / "model" / "checkpoints"
+        if checkpoint_root.exists():
+            shutil.rmtree(checkpoint_root, ignore_errors=True)
+
     def write_config(self, config: dict[str, Any]) -> None:
         _write_json(self.path / "config.json", config)
         _write_json(self.path / "env.json", environment_info())
+
+    def write_status(self, status: str, detail: dict[str, Any] | None = None) -> None:
+        """Record run lifecycle state so failures leave evidence behind.
+
+        Previously a run that raised before ``write_metrics`` left nothing but
+        a stray model directory, so silent failures were indistinguishable from
+        runs that were never started.
+        """
+
+        payload: dict[str, Any] = {"status": status}
+        if detail:
+            payload.update(detail)
+        _write_json(self.path / "status.json", payload)
+
+    def write_failure(self, exc: BaseException, stage: str) -> None:
+        """Persist a traceback for an aborted run."""
+
+        _write_json(
+            self.path / "failure.json",
+            {
+                "stage": stage,
+                "exception_type": type(exc).__name__,
+                "message": str(exc),
+                "traceback": traceback.format_exc(),
+            },
+        )
+        self.write_status("failed", {"stage": stage, "exception_type": type(exc).__name__})
 
     def write_metrics(self, validation: dict[str, Any], test: dict[str, Any], extra: dict[str, Any]) -> None:
         _write_json(
@@ -141,3 +194,12 @@ class RunArtifacts:
 
     def write_history(self, history: Any) -> None:
         _write_json(self.path / "training_history.json", history)
+
+    def relative(self, path: Path | str) -> str:
+        """Express ``path`` relative to the run directory when possible."""
+
+        candidate = Path(path)
+        try:
+            return str(candidate.resolve().relative_to(self.path.resolve()))
+        except ValueError:
+            return candidate.name

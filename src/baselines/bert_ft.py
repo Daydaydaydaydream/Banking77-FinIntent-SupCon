@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import time
+from pathlib import Path
 from typing import Any
 
 import numpy as np
@@ -11,6 +12,12 @@ from config import BERT_MODEL
 from utils.artifacts import RunArtifacts
 from utils.data import encode_labels, load_splits
 from utils.metrics import classification_metrics
+from utils.precision import (
+    GradientHealthCallback,
+    precision_flags,
+    prediction_health,
+    resolve_precision,
+)
 from utils.seed import seed_everything, select_torch_device
 
 
@@ -70,6 +77,45 @@ def resolve_training_schedule(
     }
 
 
+def _relative_checkpoint(artifacts: RunArtifacts, checkpoint: str | None) -> str | None:
+    """Store the best checkpoint as a run-relative path.
+
+    Absolute paths recorded on the training machine stop resolving as soon as
+    the run directory is archived, copied to another machine, or committed.
+    """
+
+    if not checkpoint:
+        return None
+    try:
+        return str(Path(checkpoint).resolve().relative_to(artifacts.path.resolve()))
+    except ValueError:
+        return Path(checkpoint).name
+
+
+def freeze_bert_layers(model: Any, num_layers: int) -> list[str]:
+    """Freeze embeddings and the lowest ``num_layers`` encoder blocks.
+
+    Returns the names of every frozen tensor so the choice is auditable from
+    ``config.json`` rather than being implicit in the training code.
+    """
+
+    if num_layers <= 0:
+        return []
+    encoder = getattr(model, "bert", model)
+    embeddings = getattr(encoder, "embeddings", None)
+    if embeddings is not None:
+        for parameter in embeddings.parameters():
+            parameter.requires_grad = False
+    layers = getattr(encoder, "encoder", None)
+    layers = getattr(layers, "layer", layers) if layers is not None else None
+    if layers is None:
+        raise ValueError("Could not locate encoder layers to freeze")
+    for layer in list(layers)[:num_layers]:
+        for parameter in layer.parameters():
+            parameter.requires_grad = False
+    return [name for name, parameter in model.named_parameters() if not parameter.requires_grad]
+
+
 def run(
     setting: str,
     seed: int,
@@ -89,6 +135,10 @@ def run(
     device: str = "auto",
     local_files_only: bool = False,
     save_model: bool = True,
+    keep_checkpoints: bool = False,
+    precision: str = "auto",
+    freeze_layers: int = 0,
+    attn_implementation: str = "eager",
 ) -> dict[str, Any]:
     try:
         import torch
@@ -108,6 +158,7 @@ def run(
 
     seed_info = seed_everything(seed)
     selected_device = select_torch_device(device)
+    precision_policy = resolve_precision(precision, selected_device)
     train, validation, test, categories = load_splits(setting, seed)
     y_train = encode_labels(train, categories)
     y_val = encode_labels(validation, categories)
@@ -139,7 +190,7 @@ def run(
     val_dataset = TextDataset(validation["text"].tolist(), y_val)
     test_dataset = TextDataset(test["text"].tolist(), y_test)
 
-    artifacts = RunArtifacts(METHOD, setting, seed)
+    artifacts = RunArtifacts(METHOD, setting, seed, keep_checkpoints=keep_checkpoints)
     config = {
         "method": METHOD,
         "setting": setting,
@@ -158,6 +209,9 @@ def run(
         "early_stopping_threshold": early_stopping_threshold,
         "training_schedule": schedule,
         "device": selected_device,
+        "precision": precision_policy,
+        "freeze_layers": freeze_layers,
+        "attn_implementation": attn_implementation,
         "local_files_only": local_files_only,
         "seed_info": seed_info,
     }
@@ -169,7 +223,16 @@ def run(
         id2label={idx: label for idx, label in enumerate(categories)},
         label2id=label_to_id,
         local_files_only=local_files_only,
+        attn_implementation=attn_implementation,
     )
+    if freeze_layers > 0:
+        # Freezing the embedding table and the lowest transformer blocks is the
+        # cheapest stabilisation for few-shot fine-tuning: it removes most of
+        # the parameters that can drift far from the pretrained optimum when
+        # only a handful of examples per class are available.
+        frozen = freeze_bert_layers(model, freeze_layers)
+        config["frozen_parameter_tensors"] = frozen
+        artifacts.write_config(config)
 
     def compute_metrics(eval_prediction: Any) -> dict[str, float]:
         logits, labels = eval_prediction
@@ -184,7 +247,7 @@ def run(
     strategy = str(schedule["strategy"])
     resolved_eval_steps = schedule["eval_steps"]
     training_args = TrainingArguments(
-        output_dir=str(artifacts.model_dir / "checkpoints"),
+        output_dir=str(artifacts.checkpoint_dir),
         num_train_epochs=epochs,
         max_steps=int(schedule["max_steps"]),
         per_device_train_batch_size=batch_size,
@@ -205,7 +268,11 @@ def run(
         seed=seed,
         data_seed=seed,
         report_to="none",
-        fp16=selected_device == "cuda",
+        # float16 silently overflowed on few-shot runs and produced class
+        # collapse.  resolve_precision() prefers bfloat16, whose exponent range
+        # matches float32.
+        **precision_flags(str(precision_policy["resolved"])),
+        max_grad_norm=1.0,
         dataloader_pin_memory=selected_device == "cuda",
     )
 
@@ -228,7 +295,10 @@ def run(
             return control
 
     early_stopping = MinimumStepsEarlyStoppingCallback() if patience > 0 else None
-    callbacks = [early_stopping] if early_stopping is not None else []
+    gradient_health = GradientHealthCallback()
+    callbacks: list[Any] = [gradient_health]
+    if early_stopping is not None:
+        callbacks.append(early_stopping)
     trainer = Trainer(
         model=model,
         args=training_args,
@@ -256,6 +326,12 @@ def run(
     test_metrics = classification_metrics(y_test, y_pred, categories)
     artifacts.write_confusion(y_test, y_pred, categories)
     artifacts.write_history(trainer.state.log_history)
+
+    validation_health = prediction_health(y_val, val_pred, categories)
+    test_health = prediction_health(y_test, y_pred, categories)
+    gradient_report = gradient_health.report()
+    collapsed = validation_health["collapsed"] or gradient_report["non_finite_grad_norm_events"] > 0
+
     artifacts.write_metrics(
         validation_metrics,
         test_metrics,
@@ -263,19 +339,27 @@ def run(
             "train_seconds": train_seconds,
             "test_inference_seconds": inference_seconds,
             "test_examples_per_second": len(test) / inference_seconds,
-            "best_checkpoint": trainer.state.best_model_checkpoint,
+            # Stored relative to the run directory: absolute paths from another
+            # machine are meaningless once the run is archived or re-cloned.
+            "best_checkpoint": _relative_checkpoint(artifacts, trainer.state.best_model_checkpoint),
             "best_validation_metric": trainer.state.best_metric,
             "optimizer_steps": trainer.state.global_step,
             "epochs_completed": trainer.state.epoch,
             "stopped_for_validation_plateau": bool(
                 early_stopping is not None and early_stopping.stopped_for_plateau
             ),
+            "gradient_health": gradient_report,
+            "validation_health": validation_health,
+            "test_health": test_health,
+            "run_flagged_as_collapsed": collapsed,
         },
     )
+    artifacts.write_status("completed", {"collapsed": collapsed})
     if save_model:
         final_dir = artifacts.model_dir / "best"
         trainer.save_model(str(final_dir))
         tokenizer.save_pretrained(final_dir)
+    artifacts.cleanup_checkpoints()
 
     return {
         "method": METHOD,
@@ -283,5 +367,7 @@ def run(
         "seed": seed,
         "validation_macro_f1": validation_metrics["macro_f1"],
         "test_macro_f1": test_metrics["macro_f1"],
+        "predicted_class_count": test_health["predicted_class_count"],
+        "run_flagged_as_collapsed": collapsed,
         "output_dir": str(artifacts.path),
     }

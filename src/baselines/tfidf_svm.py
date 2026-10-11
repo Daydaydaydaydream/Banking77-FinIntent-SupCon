@@ -15,6 +15,7 @@ from sklearn.svm import LinearSVC
 from utils.artifacts import RunArtifacts
 from utils.data import encode_labels, load_splits
 from utils.metrics import classification_metrics
+from utils.precision import prediction_health
 from utils.seed import seed_everything
 
 
@@ -28,6 +29,7 @@ def run(
     c: float = 1.0,
     min_df: int | None = None,
     save_model: bool = True,
+    keep_checkpoints: bool = False,
 ) -> dict[str, Any]:
     seed_info = seed_everything(seed)
     train, validation, test, categories = load_splits(setting, seed)
@@ -36,7 +38,7 @@ def run(
     y_test = encode_labels(test, categories)
     actual_min_df = min_df if min_df is not None else (1 if setting != "full" else 2)
 
-    artifacts = RunArtifacts(METHOD, setting, seed)
+    artifacts = RunArtifacts(METHOD, setting, seed, keep_checkpoints=keep_checkpoints)
     config = {
         "method": METHOD,
         "setting": setting,
@@ -86,6 +88,8 @@ def run(
     y_pred = artifacts.write_predictions(test["text"].tolist(), y_test, test_scores, categories)
     test_metrics = classification_metrics(y_test, y_pred, categories)
     artifacts.write_confusion(y_test, y_pred, categories)
+    validation_health = prediction_health(y_val, val_pred, categories)
+    test_health = prediction_health(y_test, y_pred, categories)
     artifacts.write_metrics(
         validation_metrics,
         test_metrics,
@@ -93,8 +97,12 @@ def run(
             "train_seconds": train_seconds,
             "test_inference_seconds": inference_seconds,
             "test_examples_per_second": len(test) / inference_seconds,
+            "validation_health": validation_health,
+            "test_health": test_health,
+            "run_flagged_as_collapsed": test_health["collapsed"],
         },
     )
+    artifacts.write_status("completed", {"collapsed": test_health["collapsed"]})
     if save_model:
         joblib.dump(model, artifacts.model_dir / "pipeline.joblib")
 
@@ -104,5 +112,7 @@ def run(
         "seed": seed,
         "validation_macro_f1": validation_metrics["macro_f1"],
         "test_macro_f1": test_metrics["macro_f1"],
+        "predicted_class_count": test_health["predicted_class_count"],
+        "run_flagged_as_collapsed": test_health["collapsed"],
         "output_dir": str(artifacts.path),
     }
