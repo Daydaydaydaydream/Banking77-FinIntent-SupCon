@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import inspect
 import json
 import sys
 import unittest
@@ -144,6 +145,104 @@ class ConfusionPairTest(unittest.TestCase):
         self.assertEqual(summary[0]["group"], "g")
         self.assertEqual(summary[0]["bidirectional_total"], 10)
         self.assertEqual(summary[0]["pairs"], 2)
+
+
+class FrozenConfigTest(unittest.TestCase):
+    """The frozen file mixes hyperparameters with provenance notes.
+
+    Forwarding the notes to a runner raises TypeError, which is how the first
+    multi-seed sweep failed for all 24 BERT and SetFit runs.
+    """
+
+    CONFIG = Path(__file__).resolve().parents[1] / "configs" / "bert_frozen.json"
+
+    def test_provenance_keys_are_not_forwarded_as_hyperparameters(self) -> None:
+        from run_baselines import PROVENANCE_KEYS, _frozen_config, _provenance
+
+        overrides = _frozen_config(str(self.CONFIG), "bert", "5shot")
+        self.assertNotIn("selected_on", overrides)
+        self.assertNotIn("selected_candidate", overrides)
+        self.assertEqual(overrides["precision"], "bf16")
+
+    def test_provenance_is_readable_separately(self) -> None:
+        from run_baselines import _provenance
+
+        provenance = _provenance(str(self.CONFIG), "bert", "5shot")
+        self.assertIn("selected_on", provenance)
+        self.assertIn("selected_candidate", provenance)
+
+    def test_settings_resolve_independently(self) -> None:
+        from run_baselines import _frozen_config
+
+        five = _frozen_config(str(self.CONFIG), "bert", "5shot")
+        full = _frozen_config(str(self.CONFIG), "bert", "full")
+        self.assertEqual(five["epochs"], 5.0)
+        self.assertEqual(full["epochs"], 10.0)
+
+    def test_every_runner_accepts_the_provenance_argument(self) -> None:
+        import inspect
+
+        from baselines import bert_ft, setfit_baseline, tfidf_svm
+        from supcon import train
+
+        for runner in (bert_ft.run, setfit_baseline.run, tfidf_svm.run, train.run):
+            with self.subTest(runner=runner.__module__):
+                self.assertIn("config_provenance", inspect.signature(runner).parameters)
+
+    def test_missing_file_fails_with_an_actionable_message(self) -> None:
+        """A missing config must not silently produce default hyperparameters."""
+
+        from run_baselines import _frozen_config
+
+        with self.assertRaises(FileNotFoundError) as ctx:
+            _frozen_config("does/not/exist.json", "bert", "5shot")
+        self.assertIn("tune_bert", str(ctx.exception))
+
+
+class OfflineModelTest(unittest.TestCase):
+    """``--local-files-only`` fails unless the model name resolves locally.
+
+    Passing the hub name makes transformers attempt a network call and raise
+    "couldn't connect to huggingface.co" instead of loading the snapshot that
+    is already on disk under models/.
+    """
+
+    def test_defaults_point_at_the_local_snapshot_when_present(self) -> None:
+        from config import LOCAL_BERT_MODEL, LOCAL_SETFIT_MODEL
+        from pathlib import Path as _Path
+
+        from baselines import bert_ft, setfit_baseline
+
+        if _Path(LOCAL_BERT_MODEL).is_dir():
+            self.assertEqual(inspect.signature(bert_ft.run).parameters["model_name"].default, LOCAL_BERT_MODEL)
+        if _Path(LOCAL_SETFIT_MODEL).is_dir():
+            self.assertEqual(
+                inspect.signature(setfit_baseline.run).parameters["model_name"].default,
+                LOCAL_SETFIT_MODEL,
+            )
+
+    def test_local_bert_snapshot_loads_without_network(self) -> None:
+        from transformers import AutoTokenizer
+
+        from config import LOCAL_BERT_MODEL
+        from pathlib import Path as _Path
+
+        if not _Path(LOCAL_BERT_MODEL).is_dir():
+            self.skipTest("local snapshot not present")
+        tokenizer = AutoTokenizer.from_pretrained(LOCAL_BERT_MODEL, local_files_only=True)
+        self.assertEqual(len(tokenizer), 30522)
+
+
+class SettingsExpansionTest(unittest.TestCase):
+    def test_all_expands_to_every_budget(self) -> None:
+        from analysis.tune_bert import _expand_settings
+
+        self.assertEqual(set(_expand_settings(["all"])), {"full", "5shot", "10shot", "20shot"})
+
+    def test_explicit_settings_keep_their_order(self) -> None:
+        from analysis.tune_bert import _expand_settings
+
+        self.assertEqual(_expand_settings(["20shot", "10shot"]), ["10shot", "20shot"])
 
 
 if __name__ == "__main__":

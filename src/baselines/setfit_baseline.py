@@ -90,6 +90,7 @@ def run(
     local_files_only: bool = False,
     save_model: bool = True,
     keep_checkpoints: bool = False,
+    config_provenance: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     try:
         from datasets import Dataset
@@ -128,6 +129,8 @@ def run(
         "local_files_only": local_files_only,
         "seed_info": seed_info,
     }
+    if config_provenance:
+        config["config_provenance"] = config_provenance
     artifacts.write_config(config)
 
     model = SetFitModel.from_pretrained(

@@ -30,6 +30,7 @@ def run(
     min_df: int | None = None,
     save_model: bool = True,
     keep_checkpoints: bool = False,
+    config_provenance: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     seed_info = seed_everything(seed)
     train, validation, test, categories = load_splits(setting, seed)
@@ -56,6 +57,8 @@ def run(
         "score_note": "top-k scores are softmax-normalized SVM decision scores and are not calibrated probabilities",
         "seed_info": seed_info,
     }
+    if config_provenance:
+        config["config_provenance"] = config_provenance
     artifacts.write_config(config)
 
     model = Pipeline(

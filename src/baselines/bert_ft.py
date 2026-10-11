@@ -136,6 +136,7 @@ def run(
     local_files_only: bool = False,
     save_model: bool = True,
     keep_checkpoints: bool = False,
+    config_provenance: dict[str, Any] | None = None,
     precision: str = "auto",
     freeze_layers: int = 0,
     attn_implementation: str = "eager",
@@ -215,6 +216,9 @@ def run(
         "local_files_only": local_files_only,
         "seed_info": seed_info,
     }
+    if config_provenance:
+        # Why these values were chosen, recorded by the validation-only sweep.
+        config["config_provenance"] = config_provenance
     artifacts.write_config(config)
 
     model = AutoModelForSequenceClassification.from_pretrained(

@@ -110,28 +110,58 @@ def kwargs_for(method: str, args: argparse.Namespace) -> dict[str, Any]:
     return values
 
 
+# Fields the sweep records for provenance. They document *why* a value was
+# chosen and must not be forwarded to a runner.
+PROVENANCE_KEYS = frozenset({"selected_on", "selected_candidate"})
+
+
+def _read_frozen(path: str | None) -> dict[str, Any]:
+    """Load and validate the frozen config file."""
+
+    if path is None:
+        return {}
+    file_path = Path(path)
+    if not file_path.exists():
+        raise FileNotFoundError(
+            f"Frozen config not found: {file_path}. "
+            "Run: PYTHONPATH=src python -m analysis.tune_bert --setting all --freeze"
+        )
+    payload = json.loads(file_path.read_text(encoding="utf-8"))
+    if not isinstance(payload, dict):
+        raise ValueError(f"Frozen config must be a JSON object: {file_path}")
+    return payload
+
+
 def _frozen_config(path: str | None, method: str, setting: str) -> dict[str, Any]:
     """Load the frozen hyperparameters for one (method, setting).
 
     The file produced by ``analysis.tune_bert`` is keyed by setting, because
     the best learning rate for 5-shot is not necessarily the best for full.
     Applying one set of values everywhere would silently ignore that.
+    Provenance fields are dropped here so the run records them separately.
     """
 
-    if path is None:
-        return {}
-    payload = json.loads(Path(path).read_text(encoding="utf-8"))
-    if not isinstance(payload, dict):
-        return {}
-    method_section = payload.get(method, {})
+    method_section = _read_frozen(path).get(method, {})
     if not isinstance(method_section, dict):
         return {}
     per_setting = method_section.get(setting)
-    if isinstance(per_setting, dict):
-        return per_setting
-    # A flat section (no setting key) applies to every setting.
-    flat = {key: value for key, value in method_section.items() if not isinstance(value, dict)}
-    return flat
+    section = per_setting if isinstance(per_setting, dict) else {
+        key: value for key, value in method_section.items() if not isinstance(value, dict)
+    }
+    return {key: value for key, value in section.items() if key not in PROVENANCE_KEYS}
+
+
+def _provenance(path: str | None, method: str, setting: str) -> dict[str, Any]:
+    """Read only the audit fields from the frozen config, for run records."""
+
+    if path is None:
+        return {}
+    method_section = _read_frozen(path).get(method, {})
+    if not isinstance(method_section, dict):
+        return {}
+    per_setting = method_section.get(setting)
+    section = per_setting if isinstance(per_setting, dict) else method_section
+    return {key: section[key] for key in PROVENANCE_KEYS if key in section}
 
 
 def main() -> None:
@@ -145,6 +175,7 @@ def main() -> None:
     for method in methods:
         for setting in settings:
             overrides = _frozen_config(args.config, method, setting)
+            provenance = _provenance(args.config, method, setting)
             if overrides:
                 print(f"frozen config for {method}/{setting}: {overrides}")
             for seed in args.seed:
@@ -158,6 +189,9 @@ def main() -> None:
                     (artifacts.path / stale).unlink(missing_ok=True)
                 print(f"run {method}/{setting}/seed{seed}")
                 call_kwargs = {**kwargs_for(method, args), **overrides}
+                # Recorded in config.json, never forwarded as a hyperparameter.
+                if provenance:
+                    call_kwargs["config_provenance"] = provenance
                 try:
                     result = RUNNERS[method](setting, seed, **call_kwargs)
                 except Exception as exc:  # noqa: BLE001 - recorded, then reported below
