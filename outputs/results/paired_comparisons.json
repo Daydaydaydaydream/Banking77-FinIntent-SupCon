@@ -1,1 +1,46 @@
-[]
+[
+  {
+    "setting": "10shot",
+    "paired_seeds": 3,
+    "delta_mean": -0.0182,
+    "delta_std": 0.0125,
+    "delta_min": -0.032642464997799436,
+    "delta_max": -0.010130267805065873,
+    "baseline": "bert",
+    "treatment": "supcon",
+    "consistent_gain": false
+  },
+  {
+    "setting": "20shot",
+    "paired_seeds": 3,
+    "delta_mean": -0.0084,
+    "delta_std": 0.0039,
+    "delta_min": -0.011761162991308916,
+    "delta_max": -0.004077738774279638,
+    "baseline": "bert",
+    "treatment": "supcon",
+    "consistent_gain": false
+  },
+  {
+    "setting": "5shot",
+    "paired_seeds": 3,
+    "delta_mean": -0.0414,
+    "delta_std": 0.0075,
+    "delta_min": -0.04675712831648515,
+    "delta_max": -0.03286295206506151,
+    "baseline": "bert",
+    "treatment": "supcon",
+    "consistent_gain": false
+  },
+  {
+    "setting": "full",
+    "paired_seeds": 3,
+    "delta_mean": 0.0063,
+    "delta_std": 0.0123,
+    "delta_min": -0.006785256487316316,
+    "delta_max": 0.017525977065160125,
+    "baseline": "bert",
+    "treatment": "supcon",
+    "consistent_gain": false
+  }
+]

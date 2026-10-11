@@ -12,17 +12,21 @@
 
 ## 当前状态
 
-仓库已完成 BANKING77 EDA、可复现的训练/验证划分，以及 TF-IDF + SVM、BERT、SetFit 三组 baseline。Version 1 已完成三种方法、四种数据预算的 `seed=42` 运行，共 12 组结果。SetFit 在 5/10/20-shot 中表现最好，TF-IDF + SVM 在 full 中表现最好；BERT 少样本结果出现预测塌缩，需要调整训练预算后重跑。详细分析见 [Version 1 基线实验报告](docs/FIRST_EXPERIMENT_REPORT.md)。
+基线已修复并重跑完成。少样本塌缩的根因是 float16 溢出，而非训练预算不足：仅把精度改为 bfloat16，5-shot 验证集 Macro-F1 就从 0.0077 升至 0.6159，预测类别数从 26 恢复到 77。
 
-Version 1 已归档产物：
+当前 `seed` 为 42/43/44 的三种子结果，测试集 Macro-F1（`mean ± std`）：
 
-- `outputs/version1/eda/eda_report.md`：EDA 结论与图表；
-- `outputs/version1/eda/banking77_eda.xlsx`：可筛选的数据分析工作簿；
-- `outputs/version1/datasets/`：训练、验证、测试数据及划分清单；
-- `outputs/version1/runs/`：12 组训练配置、指标、预测和混淆矩阵；
-- `outputs/version1/figures/model_results/`：Version 1 模型结果可视化。
+| Method | 5-shot | 10-shot | 20-shot | full |
+|---|---:|---:|---:|---:|
+| TF-IDF + Linear SVM | 0.5494 ± 0.0040 | 0.6622 ± 0.0027 | 0.7599 ± 0.0031 | 0.8879 ± 0.0000 |
+| SetFit | **0.7500** ± 0.0229 | 0.7978 ± 0.0105 | 0.8219 ± 0.0057 | 0.8768 ± 0.0049 |
+| BERT | 0.6968 ± 0.0111 | **0.8137** ± 0.0071 | **0.8629** ± 0.0057 | **0.9236** ± 0.0081 |
 
-训练代码仍将新实验写入 `outputs/datasets/`、`outputs/runs/` 和 `outputs/figures/`。如果这些活动目录不存在，先运行数据准备命令；`outputs/version1/` 作为第一版实验快照保留。
+超参数只在验证集上选择，冻结结果见 [`configs/bert_frozen.json`](configs/bert_frozen.json)。测试集不参与任何配置决策。
+
+早期报告中的两组结论已被推翻：BERT 少样本塌缩使「SetFit 是最强少样本基线」不成立，full 设置下 BERT 也反超 TF-IDF，历史对照见 [`docs/FIRST_EXPERIMENT_REPORT.md`](docs/FIRST_EXPERIMENT_REPORT.md)。
+
+每次运行的配置、环境、指标、逐类指标与混淆矩阵位于 `outputs/runs/<method>/<setting>/seed<seed>/`，聚合表位于 `outputs/results/`。
 
 ## 数据
 
@@ -45,6 +49,16 @@ Version 1 已归档产物：
 | SetFit | **0.7557** | **0.8062** | **0.8325** | 0.8778 |
 
 BERT 的 few-shot 数值来自发生预测塌缩的异常运行，不应视为可信的模型能力比较。
+
+## 历史结果（已被取代）
+
+上表是 Version 1 的单种子结果，保留用于说明问题是如何被发现的。**这些数字不应再用于任何结论**：
+
+- BERT 的三个 few-shot 数值源于 float16 梯度溢出导致的类别塌缩，已在当前版本修复；
+- 当时的结论「SetFit 是最强少样本基线」建立在塌缩的 BERT 之上，修复后不成立；
+- 当时的 full 设置结论「TF-IDF 胜过 Transformer」同样源于欠调的 BERT（验证集 0.8527），修复后为 0.9088。
+
+当前有效结果见上文「当前状态」。
 
 ## 安装
 
