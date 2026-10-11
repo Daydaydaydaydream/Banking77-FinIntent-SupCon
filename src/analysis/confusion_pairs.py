@@ -219,11 +219,103 @@ def compare(
     }
 
 
+def group_aggregate_over_seeds(
+    baseline: str,
+    treatment: str,
+    setting: str,
+    seeds: Sequence[int],
+    runs_dir: Path = RUNS_DIR,
+) -> dict[str, Any]:
+    """Aggregate pair-level changes across seeds.
+
+    A single seed can make one pair look fixed while the error simply moves to
+    a pair that was not inspected.  Aggregating per group over every seed, and
+    counting how many declared pairs improve in *every* seed, separates a real
+    effect from a reshuffle.
+    """
+
+    pair_flags: dict[tuple[str, str], list[bool]] = {}
+    group_baseline: dict[str, list[int]] = {}
+    group_treatment: dict[str, list[int]] = {}
+    compared_seeds: list[int] = []
+
+    for seed in seeds:
+        conf_base = load_confusion(baseline, setting, seed, runs_dir)
+        conf_treat = load_confusion(treatment, setting, seed, runs_dir)
+        if conf_base is None or conf_treat is None:
+            continue
+        compared_seeds.append(seed)
+
+        pairs = declared_pairs()
+        rows_base = pair_confusions(conf_base[0], pairs)
+        rows_treat = pair_confusions(conf_treat[0], pairs)
+
+        # Sum per group within this seed first, so each group contributes one
+        # number per seed rather than one per declared pair.
+        base_by_group: dict[str, int] = {}
+        treat_by_group: dict[str, int] = {}
+        for row_base, row_treat in zip(rows_base, rows_treat):
+            pair_flags.setdefault((row_base["label_a"], row_base["label_b"]), []).append(
+                row_treat["bidirectional_total"] < row_base["bidirectional_total"]
+            )
+            base_by_group[row_base["group"]] = (
+                base_by_group.get(row_base["group"], 0) + row_base["bidirectional_total"]
+            )
+            treat_by_group[row_base["group"]] = (
+                treat_by_group.get(row_base["group"], 0) + row_treat["bidirectional_total"]
+            )
+        for group, total in base_by_group.items():
+            group_baseline.setdefault(group, []).append(total)
+            group_treatment.setdefault(group, []).append(treat_by_group.get(group, 0))
+
+    if not compared_seeds:
+        return {"error": f"no comparable runs for {baseline}/{treatment}/{setting}"}
+
+    group_table = []
+    for group in CONFUSION_GROUPS:
+        base_totals = group_baseline.get(group)
+        treat_totals = group_treatment.get(group)
+        if not base_totals or not treat_totals:
+            continue
+        base_mean = sum(base_totals) / len(base_totals)
+        treat_mean = sum(treat_totals) / len(treat_totals)
+        group_table.append(
+            {
+                "group": group,
+                "baseline_mean": base_mean,
+                "treatment_mean": treat_mean,
+                "delta": treat_mean - base_mean,
+                "improved": treat_mean < base_mean,
+                "per_seed_delta": [t - b for b, t in zip(base_totals, treat_totals)],
+            }
+        )
+    group_table.sort(key=lambda item: item["delta"])
+
+    consistently_improved = [k for k, flags in pair_flags.items() if all(flags)]
+    consistently_worsened = [k for k, flags in pair_flags.items() if not any(flags)]
+    improved = sum(1 for item in group_table if item["improved"])
+
+    return {
+        "baseline": baseline,
+        "treatment": treatment,
+        "setting": setting,
+        "seeds": compared_seeds,
+        "groups": group_table,
+        "groups_improved": improved,
+        "groups_total": len(group_table),
+        "pairs_compared": len(pair_flags),
+        "pairs_consistently_improved": len(consistently_improved),
+        "pairs_consistently_worsened": len(consistently_worsened),
+        "consistently_improved_labels": [f"{a} <-> {b}" for a, b in consistently_improved],
+        "consistently_worsened_labels": [f"{a} <-> {b}" for a, b in consistently_worsened],
+    }
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--methods", nargs="+", default=["bert", "supcon", "supcon_hn"])
     parser.add_argument("--setting", default="5shot")
-    parser.add_argument("--seed", type=int, default=42)
+    parser.add_argument("--seed", type=int, nargs="+", default=[42])
     parser.add_argument(
         "--compare",
         nargs=2,
@@ -240,38 +332,57 @@ def main() -> None:
     args.output.mkdir(parents=True, exist_ok=True)
 
     for method in args.methods:
-        conf = load_confusion(method, args.setting, args.seed)
-        if conf is None:
-            print(f"[skip] {method}/{args.setting}/seed{args.seed}: no confusion matrix")
-            continue
-        rows = pair_confusions(conf[0], declared_pairs())
-        payload = {
-            "method": method,
-            "setting": args.setting,
-            "seed": args.seed,
-            "selection_note": (
-                "Pairs are declared from label semantics before training; no test "
-                "confusion matrix was used to choose them."
-            ),
-            "pairs": rows,
-            "groups": group_summary(rows),
-        }
-        path = args.output / f"confusion_pairs_{method}_{args.setting}_seed{args.seed}.json"
-        path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
-        print(f"\n=== {method} / {args.setting} / seed{args.seed} ===")
-        for entry in payload["groups"]:
-            print(f"  {entry['group']:28s} bidirectional errors {entry['bidirectional_total']:4d}")
+        for seed in args.seed:
+            conf = load_confusion(method, args.setting, seed)
+            if conf is None:
+                print(f"[skip] {method}/{args.setting}/seed{seed}: no confusion matrix")
+                continue
+            rows = pair_confusions(conf[0], declared_pairs())
+            payload = {
+                "method": method,
+                "setting": args.setting,
+                "seed": seed,
+                "selection_note": (
+                    "Pairs are declared from label semantics before training; no test "
+                    "confusion matrix was used to choose them."
+                ),
+                "pairs": rows,
+                "groups": group_summary(rows),
+            }
+            path = args.output / f"confusion_pairs_{method}_{args.setting}_seed{seed}.json"
+            path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
+            print(f"\n=== {method} / {args.setting} / seed{seed} ===")
+            for entry in payload["groups"]:
+                print(f"  {entry['group']:28s} bidirectional errors {entry['bidirectional_total']:4d}")
 
     baseline, treatment = args.compare
-    result = compare(baseline, treatment, args.setting, args.seed)
-    if "error" not in result:
-        path = args.output / f"confusion_compare_{baseline}_vs_{treatment}_{args.setting}_seed{args.seed}.json"
-        path.write_text(json.dumps(result, indent=2), encoding="utf-8")
+    aggregate = group_aggregate_over_seeds(baseline, treatment, args.setting, args.seed)
+    if "error" not in aggregate:
+        name = f"confusion_groups_{baseline}_vs_{treatment}_{args.setting}.json"
+        (args.output / name).write_text(json.dumps(aggregate, indent=2), encoding="utf-8")
+        print(f"\n=== {baseline} -> {treatment} | {args.setting} | seeds {aggregate['seeds']} ===")
+        print(f"  {'group':28s} {'baseline':>9s} {'treatment':>10s} {'delta':>7s}")
+        for entry in aggregate["groups"]:
+            mark = "improved" if entry["improved"] else "worsened"
+            print(
+                f"  {entry['group']:28s} {entry['baseline_mean']:9.1f} "
+                f"{entry['treatment_mean']:10.1f} {entry['delta']:+7.1f}  {mark}"
+            )
         print(
-            f"\n=== {baseline} -> {treatment} | {args.setting} ===\n"
-            f"  Macro-F1 {result['macro_f1_a']:.4f} -> {result['macro_f1_b']:.4f}\n"
-            f"  declared pairs improved: {result['improved_pair_count']}/{result['total_pair_count']}"
+            f"  groups improved: {aggregate['groups_improved']}/{aggregate['groups_total']}\n"
+            f"  pairs improved in every seed: {aggregate['pairs_consistently_improved']}"
+            f"/{aggregate['pairs_compared']}\n"
+            f"  pairs worsened in every seed: {aggregate['pairs_consistently_worsened']}"
+            f"/{aggregate['pairs_compared']}"
         )
+        if aggregate["consistently_improved_labels"]:
+            print("  consistently improved:")
+            for label in aggregate["consistently_improved_labels"]:
+                print(f"    {label}")
+        if aggregate["consistently_worsened_labels"]:
+            print("  consistently worsened:")
+            for label in aggregate["consistently_worsened_labels"]:
+                print(f"    {label}")
 
 
 if __name__ == "__main__":

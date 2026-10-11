@@ -1,0 +1,132 @@
+{
+  "baseline": "bert",
+  "treatment": "supcon",
+  "setting": "10shot",
+  "seeds": [
+    42,
+    43,
+    44
+  ],
+  "groups": [
+    {
+      "group": "exchange_rate",
+      "baseline_mean": 19.0,
+      "treatment_mean": 13.666666666666666,
+      "delta": -5.333333333333334,
+      "improved": true,
+      "per_seed_delta": [
+        -1,
+        -11,
+        -4
+      ]
+    },
+    {
+      "group": "card_delivery",
+      "baseline_mean": 14.0,
+      "treatment_mean": 13.666666666666666,
+      "delta": -0.3333333333333339,
+      "improved": true,
+      "per_seed_delta": [
+        0,
+        -4,
+        3
+      ]
+    },
+    {
+      "group": "virtual_card",
+      "baseline_mean": 9.333333333333334,
+      "treatment_mean": 9.0,
+      "delta": -0.3333333333333339,
+      "improved": true,
+      "per_seed_delta": [
+        -4,
+        1,
+        2
+      ]
+    },
+    {
+      "group": "refund",
+      "baseline_mean": 3.6666666666666665,
+      "treatment_mean": 3.6666666666666665,
+      "delta": 0.0,
+      "improved": false,
+      "per_seed_delta": [
+        1,
+        1,
+        -2
+      ]
+    },
+    {
+      "group": "balance_not_updated",
+      "baseline_mean": 1.0,
+      "treatment_mean": 3.0,
+      "delta": 2.0,
+      "improved": false,
+      "per_seed_delta": [
+        2,
+        2,
+        2
+      ]
+    },
+    {
+      "group": "identity_verification",
+      "baseline_mean": 29.333333333333332,
+      "treatment_mean": 32.0,
+      "delta": 2.666666666666668,
+      "improved": false,
+      "per_seed_delta": [
+        1,
+        11,
+        -4
+      ]
+    },
+    {
+      "group": "declined_transaction",
+      "baseline_mean": 7.0,
+      "treatment_mean": 10.0,
+      "delta": 3.0,
+      "improved": false,
+      "per_seed_delta": [
+        3,
+        7,
+        -1
+      ]
+    },
+    {
+      "group": "top_up_state",
+      "baseline_mean": 15.333333333333334,
+      "treatment_mean": 20.333333333333332,
+      "delta": 4.999999999999998,
+      "improved": false,
+      "per_seed_delta": [
+        4,
+        6,
+        5
+      ]
+    }
+  ],
+  "groups_improved": 3,
+  "groups_total": 8,
+  "pairs_compared": 29,
+  "pairs_consistently_improved": 1,
+  "pairs_consistently_worsened": 14,
+  "consistently_improved_labels": [
+    "card_payment_wrong_exchange_rate <-> wrong_exchange_rate_for_cash_withdrawal"
+  ],
+  "consistently_worsened_labels": [
+    "unable_to_verify_identity <-> verify_source_of_funds",
+    "unable_to_verify_identity <-> why_verify_identity",
+    "verify_my_identity <-> verify_source_of_funds",
+    "pending_top_up <-> top_up_by_bank_transfer_charge",
+    "top_up_by_bank_transfer_charge <-> top_up_reverted",
+    "top_up_failed <-> top_up_reverted",
+    "card_arrival <-> card_not_working",
+    "card_delivery_estimate <-> card_not_working",
+    "card_not_working <-> order_physical_card",
+    "declined_card_payment <-> declined_cash_withdrawal",
+    "declined_card_payment <-> declined_transfer",
+    "balance_not_updated_after_bank_transfer <-> balance_not_updated_after_cheque_or_cash_deposit",
+    "disposable_card_limits <-> virtual_card_not_working",
+    "get_disposable_virtual_card <-> virtual_card_not_working"
+  ]
+}

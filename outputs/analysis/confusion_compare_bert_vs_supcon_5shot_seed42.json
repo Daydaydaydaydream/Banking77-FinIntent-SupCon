@@ -1,0 +1,439 @@
+{
+  "method_a": "bert",
+  "method_b": "supcon",
+  "setting": "5shot",
+  "seed": 42,
+  "pairs": [
+    {
+      "group": "identity_verification",
+      "label_a": "verify_my_identity",
+      "label_b": "why_verify_identity",
+      "bert_total": 24,
+      "supcon_total": 13,
+      "delta": -11,
+      "improved": true
+    },
+    {
+      "group": "identity_verification",
+      "label_a": "unable_to_verify_identity",
+      "label_b": "why_verify_identity",
+      "bert_total": 5,
+      "supcon_total": 13,
+      "delta": 8,
+      "improved": false
+    },
+    {
+      "group": "refund",
+      "label_a": "Refund_not_showing_up",
+      "label_b": "request_refund",
+      "bert_total": 17,
+      "supcon_total": 12,
+      "delta": -5,
+      "improved": true
+    },
+    {
+      "group": "card_delivery",
+      "label_a": "card_arrival",
+      "label_b": "card_delivery_estimate",
+      "bert_total": 20,
+      "supcon_total": 23,
+      "delta": 3,
+      "improved": false
+    },
+    {
+      "group": "card_delivery",
+      "label_a": "card_arrival",
+      "label_b": "card_not_working",
+      "bert_total": 0,
+      "supcon_total": 3,
+      "delta": 3,
+      "improved": false
+    },
+    {
+      "group": "card_delivery",
+      "label_a": "card_delivery_estimate",
+      "label_b": "order_physical_card",
+      "bert_total": 5,
+      "supcon_total": 2,
+      "delta": -3,
+      "improved": true
+    },
+    {
+      "group": "balance_not_updated",
+      "label_a": "balance_not_updated_after_bank_transfer",
+      "label_b": "balance_not_updated_after_cheque_or_cash_deposit",
+      "bert_total": 12,
+      "supcon_total": 9,
+      "delta": -3,
+      "improved": true
+    },
+    {
+      "group": "virtual_card",
+      "label_a": "disposable_card_limits",
+      "label_b": "get_disposable_virtual_card",
+      "bert_total": 23,
+      "supcon_total": 26,
+      "delta": 3,
+      "improved": false
+    },
+    {
+      "group": "identity_verification",
+      "label_a": "unable_to_verify_identity",
+      "label_b": "verify_my_identity",
+      "bert_total": 4,
+      "supcon_total": 2,
+      "delta": -2,
+      "improved": true
+    },
+    {
+      "group": "top_up_state",
+      "label_a": "top_up_failed",
+      "label_b": "top_up_reverted",
+      "bert_total": 3,
+      "supcon_total": 5,
+      "delta": 2,
+      "improved": false
+    },
+    {
+      "group": "card_delivery",
+      "label_a": "card_arrival",
+      "label_b": "order_physical_card",
+      "bert_total": 2,
+      "supcon_total": 0,
+      "delta": -2,
+      "improved": true
+    },
+    {
+      "group": "declined_transaction",
+      "label_a": "declined_card_payment",
+      "label_b": "declined_cash_withdrawal",
+      "bert_total": 6,
+      "supcon_total": 4,
+      "delta": -2,
+      "improved": true
+    },
+    {
+      "group": "exchange_rate",
+      "label_a": "card_payment_wrong_exchange_rate",
+      "label_b": "wrong_exchange_rate_for_cash_withdrawal",
+      "bert_total": 15,
+      "supcon_total": 17,
+      "delta": 2,
+      "improved": false
+    },
+    {
+      "group": "exchange_rate",
+      "label_a": "exchange_rate",
+      "label_b": "wrong_exchange_rate_for_cash_withdrawal",
+      "bert_total": 4,
+      "supcon_total": 2,
+      "delta": -2,
+      "improved": true
+    },
+    {
+      "group": "virtual_card",
+      "label_a": "get_disposable_virtual_card",
+      "label_b": "virtual_card_not_working",
+      "bert_total": 18,
+      "supcon_total": 16,
+      "delta": -2,
+      "improved": true
+    },
+    {
+      "group": "identity_verification",
+      "label_a": "verify_my_identity",
+      "label_b": "verify_source_of_funds",
+      "bert_total": 1,
+      "supcon_total": 0,
+      "delta": -1,
+      "improved": true
+    },
+    {
+      "group": "top_up_state",
+      "label_a": "pending_top_up",
+      "label_b": "top_up_failed",
+      "bert_total": 32,
+      "supcon_total": 31,
+      "delta": -1,
+      "improved": true
+    },
+    {
+      "group": "top_up_state",
+      "label_a": "pending_top_up",
+      "label_b": "top_up_reverted",
+      "bert_total": 32,
+      "supcon_total": 31,
+      "delta": -1,
+      "improved": true
+    },
+    {
+      "group": "exchange_rate",
+      "label_a": "card_payment_wrong_exchange_rate",
+      "label_b": "exchange_rate",
+      "bert_total": 2,
+      "supcon_total": 3,
+      "delta": 1,
+      "improved": false
+    },
+    {
+      "group": "identity_verification",
+      "label_a": "unable_to_verify_identity",
+      "label_b": "verify_source_of_funds",
+      "bert_total": 0,
+      "supcon_total": 0,
+      "delta": 0,
+      "improved": false
+    },
+    {
+      "group": "identity_verification",
+      "label_a": "verify_source_of_funds",
+      "label_b": "why_verify_identity",
+      "bert_total": 0,
+      "supcon_total": 0,
+      "delta": 0,
+      "improved": false
+    },
+    {
+      "group": "top_up_state",
+      "label_a": "pending_top_up",
+      "label_b": "top_up_by_bank_transfer_charge",
+      "bert_total": 0,
+      "supcon_total": 0,
+      "delta": 0,
+      "improved": false
+    },
+    {
+      "group": "top_up_state",
+      "label_a": "top_up_by_bank_transfer_charge",
+      "label_b": "top_up_failed",
+      "bert_total": 0,
+      "supcon_total": 0,
+      "delta": 0,
+      "improved": false
+    },
+    {
+      "group": "top_up_state",
+      "label_a": "top_up_by_bank_transfer_charge",
+      "label_b": "top_up_reverted",
+      "bert_total": 0,
+      "supcon_total": 0,
+      "delta": 0,
+      "improved": false
+    },
+    {
+      "group": "card_delivery",
+      "label_a": "card_delivery_estimate",
+      "label_b": "card_not_working",
+      "bert_total": 1,
+      "supcon_total": 1,
+      "delta": 0,
+      "improved": false
+    },
+    {
+      "group": "card_delivery",
+      "label_a": "card_not_working",
+      "label_b": "order_physical_card",
+      "bert_total": 0,
+      "supcon_total": 0,
+      "delta": 0,
+      "improved": false
+    },
+    {
+      "group": "declined_transaction",
+      "label_a": "declined_card_payment",
+      "label_b": "declined_transfer",
+      "bert_total": 2,
+      "supcon_total": 2,
+      "delta": 0,
+      "improved": false
+    },
+    {
+      "group": "declined_transaction",
+      "label_a": "declined_cash_withdrawal",
+      "label_b": "declined_transfer",
+      "bert_total": 2,
+      "supcon_total": 2,
+      "delta": 0,
+      "improved": false
+    },
+    {
+      "group": "virtual_card",
+      "label_a": "disposable_card_limits",
+      "label_b": "virtual_card_not_working",
+      "bert_total": 1,
+      "supcon_total": 1,
+      "delta": 0,
+      "improved": false
+    }
+  ],
+  "groups": [
+    {
+      "group": "top_up_state",
+      "pairs": 6,
+      "bidirectional_total": 67
+    },
+    {
+      "group": "virtual_card",
+      "pairs": 3,
+      "bidirectional_total": 42
+    },
+    {
+      "group": "identity_verification",
+      "pairs": 6,
+      "bidirectional_total": 34
+    },
+    {
+      "group": "card_delivery",
+      "pairs": 6,
+      "bidirectional_total": 28
+    },
+    {
+      "group": "exchange_rate",
+      "pairs": 3,
+      "bidirectional_total": 21
+    },
+    {
+      "group": "refund",
+      "pairs": 1,
+      "bidirectional_total": 17
+    },
+    {
+      "group": "balance_not_updated",
+      "pairs": 1,
+      "bidirectional_total": 12
+    },
+    {
+      "group": "declined_transaction",
+      "pairs": 3,
+      "bidirectional_total": 10
+    }
+  ],
+  "per_class_worst": [
+    {
+      "label": "cash_withdrawal_charge",
+      "f1_a": 0.7012987012987013,
+      "f1_b": 0.3063063063063063,
+      "delta": -0.394992394992395
+    },
+    {
+      "label": "beneficiary_not_allowed",
+      "f1_a": 0.5915492957746479,
+      "f1_b": 0.37681159420289856,
+      "delta": -0.21473770157174932
+    },
+    {
+      "label": "cash_withdrawal_not_recognised",
+      "f1_a": 0.6764705882352942,
+      "f1_b": 0.4666666666666667,
+      "delta": -0.20980392156862748
+    },
+    {
+      "label": "fiat_currency_support",
+      "f1_a": 0.7142857142857143,
+      "f1_b": 0.5217391304347826,
+      "delta": -0.1925465838509317
+    },
+    {
+      "label": "wrong_amount_of_cash_received",
+      "f1_a": 0.7027027027027027,
+      "f1_b": 0.5245901639344263,
+      "delta": -0.17811253876827648
+    },
+    {
+      "label": "failed_transfer",
+      "f1_a": 0.6585365853658537,
+      "f1_b": 0.4819277108433735,
+      "delta": -0.1766088745224802
+    },
+    {
+      "label": "get_physical_card",
+      "f1_a": 0.8888888888888888,
+      "f1_b": 0.7123287671232876,
+      "delta": -0.1765601217656012
+    },
+    {
+      "label": "card_delivery_estimate",
+      "f1_a": 0.5934065934065934,
+      "f1_b": 0.4225352112676056,
+      "delta": -0.17087138213898778
+    },
+    {
+      "label": "reverted_card_payment?",
+      "f1_a": 0.6823529411764706,
+      "f1_b": 0.5128205128205128,
+      "delta": -0.16953242835595783
+    },
+    {
+      "label": "pending_transfer",
+      "f1_a": 0.717948717948718,
+      "f1_b": 0.5897435897435898,
+      "delta": -0.1282051282051282
+    }
+  ],
+  "per_class_best": [
+    {
+      "label": "declined_cash_withdrawal",
+      "f1_a": 0.37142857142857144,
+      "f1_b": 0.6233766233766234,
+      "delta": 0.2519480519480519
+    },
+    {
+      "label": "verify_my_identity",
+      "f1_a": 0.693069306930693,
+      "f1_b": 0.8260869565217391,
+      "delta": 0.13301764959104612
+    },
+    {
+      "label": "card_swallowed",
+      "f1_a": 0.6804123711340206,
+      "f1_b": 0.8095238095238095,
+      "delta": 0.1291114383897889
+    },
+    {
+      "label": "top_up_failed",
+      "f1_a": 0.208955223880597,
+      "f1_b": 0.3157894736842105,
+      "delta": 0.1068342498036135
+    },
+    {
+      "label": "top_up_reverted",
+      "f1_a": 0.08,
+      "f1_b": 0.17647058823529413,
+      "delta": 0.09647058823529413
+    },
+    {
+      "label": "request_refund",
+      "f1_a": 0.4827586206896552,
+      "f1_b": 0.5714285714285714,
+      "delta": 0.0886699507389162
+    },
+    {
+      "label": "card_payment_fee_charged",
+      "f1_a": 0.6458333333333334,
+      "f1_b": 0.7142857142857143,
+      "delta": 0.06845238095238093
+    },
+    {
+      "label": "declined_transfer",
+      "f1_a": 0.5833333333333334,
+      "f1_b": 0.647887323943662,
+      "delta": 0.06455399061032863
+    },
+    {
+      "label": "card_arrival",
+      "f1_a": 0.5,
+      "f1_b": 0.5641025641025641,
+      "delta": 0.0641025641025641
+    },
+    {
+      "label": "why_verify_identity",
+      "f1_a": 0.5079365079365079,
+      "f1_b": 0.5588235294117647,
+      "delta": 0.05088702147525681
+    }
+  ],
+  "improved_pair_count": 12,
+  "total_pair_count": 29,
+  "macro_f1_a": 0.6981581782668023,
+  "macro_f1_b": 0.6536296448992245
+}

@@ -1,0 +1,282 @@
+{
+  "method": "supcon",
+  "setting": "5shot",
+  "seed": 43,
+  "selection_note": "Pairs are declared from label semantics before training; no test confusion matrix was used to choose them.",
+  "pairs": [
+    {
+      "group": "identity_verification",
+      "label_a": "unable_to_verify_identity",
+      "label_b": "verify_my_identity",
+      "unable_to_verify_identity->verify_my_identity": 2,
+      "verify_my_identity->unable_to_verify_identity": 9,
+      "bidirectional_total": 11
+    },
+    {
+      "group": "identity_verification",
+      "label_a": "unable_to_verify_identity",
+      "label_b": "verify_source_of_funds",
+      "unable_to_verify_identity->verify_source_of_funds": 0,
+      "verify_source_of_funds->unable_to_verify_identity": 0,
+      "bidirectional_total": 0
+    },
+    {
+      "group": "identity_verification",
+      "label_a": "unable_to_verify_identity",
+      "label_b": "why_verify_identity",
+      "unable_to_verify_identity->why_verify_identity": 3,
+      "why_verify_identity->unable_to_verify_identity": 12,
+      "bidirectional_total": 15
+    },
+    {
+      "group": "identity_verification",
+      "label_a": "verify_my_identity",
+      "label_b": "verify_source_of_funds",
+      "verify_my_identity->verify_source_of_funds": 0,
+      "verify_source_of_funds->verify_my_identity": 0,
+      "bidirectional_total": 0
+    },
+    {
+      "group": "identity_verification",
+      "label_a": "verify_my_identity",
+      "label_b": "why_verify_identity",
+      "verify_my_identity->why_verify_identity": 0,
+      "why_verify_identity->verify_my_identity": 9,
+      "bidirectional_total": 9
+    },
+    {
+      "group": "identity_verification",
+      "label_a": "verify_source_of_funds",
+      "label_b": "why_verify_identity",
+      "verify_source_of_funds->why_verify_identity": 2,
+      "why_verify_identity->verify_source_of_funds": 0,
+      "bidirectional_total": 2
+    },
+    {
+      "group": "top_up_state",
+      "label_a": "pending_top_up",
+      "label_b": "top_up_by_bank_transfer_charge",
+      "pending_top_up->top_up_by_bank_transfer_charge": 0,
+      "top_up_by_bank_transfer_charge->pending_top_up": 0,
+      "bidirectional_total": 0
+    },
+    {
+      "group": "top_up_state",
+      "label_a": "pending_top_up",
+      "label_b": "top_up_failed",
+      "pending_top_up->top_up_failed": 6,
+      "top_up_failed->pending_top_up": 6,
+      "bidirectional_total": 12
+    },
+    {
+      "group": "top_up_state",
+      "label_a": "pending_top_up",
+      "label_b": "top_up_reverted",
+      "pending_top_up->top_up_reverted": 5,
+      "top_up_reverted->pending_top_up": 2,
+      "bidirectional_total": 7
+    },
+    {
+      "group": "top_up_state",
+      "label_a": "top_up_by_bank_transfer_charge",
+      "label_b": "top_up_failed",
+      "top_up_by_bank_transfer_charge->top_up_failed": 0,
+      "top_up_failed->top_up_by_bank_transfer_charge": 0,
+      "bidirectional_total": 0
+    },
+    {
+      "group": "top_up_state",
+      "label_a": "top_up_by_bank_transfer_charge",
+      "label_b": "top_up_reverted",
+      "top_up_by_bank_transfer_charge->top_up_reverted": 0,
+      "top_up_reverted->top_up_by_bank_transfer_charge": 0,
+      "bidirectional_total": 0
+    },
+    {
+      "group": "top_up_state",
+      "label_a": "top_up_failed",
+      "label_b": "top_up_reverted",
+      "top_up_failed->top_up_reverted": 13,
+      "top_up_reverted->top_up_failed": 7,
+      "bidirectional_total": 20
+    },
+    {
+      "group": "card_delivery",
+      "label_a": "card_arrival",
+      "label_b": "card_delivery_estimate",
+      "card_arrival->card_delivery_estimate": 7,
+      "card_delivery_estimate->card_arrival": 3,
+      "bidirectional_total": 10
+    },
+    {
+      "group": "card_delivery",
+      "label_a": "card_arrival",
+      "label_b": "card_not_working",
+      "card_arrival->card_not_working": 1,
+      "card_not_working->card_arrival": 0,
+      "bidirectional_total": 1
+    },
+    {
+      "group": "card_delivery",
+      "label_a": "card_arrival",
+      "label_b": "order_physical_card",
+      "card_arrival->order_physical_card": 1,
+      "order_physical_card->card_arrival": 1,
+      "bidirectional_total": 2
+    },
+    {
+      "group": "card_delivery",
+      "label_a": "card_delivery_estimate",
+      "label_b": "card_not_working",
+      "card_delivery_estimate->card_not_working": 0,
+      "card_not_working->card_delivery_estimate": 0,
+      "bidirectional_total": 0
+    },
+    {
+      "group": "card_delivery",
+      "label_a": "card_delivery_estimate",
+      "label_b": "order_physical_card",
+      "card_delivery_estimate->order_physical_card": 3,
+      "order_physical_card->card_delivery_estimate": 3,
+      "bidirectional_total": 6
+    },
+    {
+      "group": "card_delivery",
+      "label_a": "card_not_working",
+      "label_b": "order_physical_card",
+      "card_not_working->order_physical_card": 1,
+      "order_physical_card->card_not_working": 0,
+      "bidirectional_total": 1
+    },
+    {
+      "group": "declined_transaction",
+      "label_a": "declined_card_payment",
+      "label_b": "declined_cash_withdrawal",
+      "declined_card_payment->declined_cash_withdrawal": 0,
+      "declined_cash_withdrawal->declined_card_payment": 1,
+      "bidirectional_total": 1
+    },
+    {
+      "group": "declined_transaction",
+      "label_a": "declined_card_payment",
+      "label_b": "declined_transfer",
+      "declined_card_payment->declined_transfer": 2,
+      "declined_transfer->declined_card_payment": 0,
+      "bidirectional_total": 2
+    },
+    {
+      "group": "declined_transaction",
+      "label_a": "declined_cash_withdrawal",
+      "label_b": "declined_transfer",
+      "declined_cash_withdrawal->declined_transfer": 3,
+      "declined_transfer->declined_cash_withdrawal": 0,
+      "bidirectional_total": 3
+    },
+    {
+      "group": "balance_not_updated",
+      "label_a": "balance_not_updated_after_bank_transfer",
+      "label_b": "balance_not_updated_after_cheque_or_cash_deposit",
+      "balance_not_updated_after_bank_transfer->balance_not_updated_after_cheque_or_cash_deposit": 1,
+      "balance_not_updated_after_cheque_or_cash_deposit->balance_not_updated_after_bank_transfer": 0,
+      "bidirectional_total": 1
+    },
+    {
+      "group": "exchange_rate",
+      "label_a": "card_payment_wrong_exchange_rate",
+      "label_b": "exchange_rate",
+      "card_payment_wrong_exchange_rate->exchange_rate": 2,
+      "exchange_rate->card_payment_wrong_exchange_rate": 0,
+      "bidirectional_total": 2
+    },
+    {
+      "group": "exchange_rate",
+      "label_a": "card_payment_wrong_exchange_rate",
+      "label_b": "wrong_exchange_rate_for_cash_withdrawal",
+      "card_payment_wrong_exchange_rate->wrong_exchange_rate_for_cash_withdrawal": 14,
+      "wrong_exchange_rate_for_cash_withdrawal->card_payment_wrong_exchange_rate": 4,
+      "bidirectional_total": 18
+    },
+    {
+      "group": "exchange_rate",
+      "label_a": "exchange_rate",
+      "label_b": "wrong_exchange_rate_for_cash_withdrawal",
+      "exchange_rate->wrong_exchange_rate_for_cash_withdrawal": 0,
+      "wrong_exchange_rate_for_cash_withdrawal->exchange_rate": 3,
+      "bidirectional_total": 3
+    },
+    {
+      "group": "refund",
+      "label_a": "Refund_not_showing_up",
+      "label_b": "request_refund",
+      "Refund_not_showing_up->request_refund": 3,
+      "request_refund->Refund_not_showing_up": 16,
+      "bidirectional_total": 19
+    },
+    {
+      "group": "virtual_card",
+      "label_a": "disposable_card_limits",
+      "label_b": "get_disposable_virtual_card",
+      "disposable_card_limits->get_disposable_virtual_card": 8,
+      "get_disposable_virtual_card->disposable_card_limits": 2,
+      "bidirectional_total": 10
+    },
+    {
+      "group": "virtual_card",
+      "label_a": "disposable_card_limits",
+      "label_b": "virtual_card_not_working",
+      "disposable_card_limits->virtual_card_not_working": 0,
+      "virtual_card_not_working->disposable_card_limits": 1,
+      "bidirectional_total": 1
+    },
+    {
+      "group": "virtual_card",
+      "label_a": "get_disposable_virtual_card",
+      "label_b": "virtual_card_not_working",
+      "get_disposable_virtual_card->virtual_card_not_working": 0,
+      "virtual_card_not_working->get_disposable_virtual_card": 5,
+      "bidirectional_total": 5
+    }
+  ],
+  "groups": [
+    {
+      "group": "top_up_state",
+      "pairs": 6,
+      "bidirectional_total": 39
+    },
+    {
+      "group": "identity_verification",
+      "pairs": 6,
+      "bidirectional_total": 37
+    },
+    {
+      "group": "exchange_rate",
+      "pairs": 3,
+      "bidirectional_total": 23
+    },
+    {
+      "group": "card_delivery",
+      "pairs": 6,
+      "bidirectional_total": 20
+    },
+    {
+      "group": "refund",
+      "pairs": 1,
+      "bidirectional_total": 19
+    },
+    {
+      "group": "virtual_card",
+      "pairs": 3,
+      "bidirectional_total": 16
+    },
+    {
+      "group": "declined_transaction",
+      "pairs": 3,
+      "bidirectional_total": 6
+    },
+    {
+      "group": "balance_not_updated",
+      "pairs": 1,
+      "bidirectional_total": 1
+    }
+  ]
+}

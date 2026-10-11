@@ -245,5 +245,56 @@ class SettingsExpansionTest(unittest.TestCase):
         self.assertEqual(_expand_settings(["20shot", "10shot"]), ["10shot", "20shot"])
 
 
+class MultiSeedGroupTest(unittest.TestCase):
+    """The core claim is about confusion pairs, so it must hold across seeds."""
+
+    def setUp(self) -> None:
+        from config import RUNS_DIR
+
+        self.runs_dir = RUNS_DIR
+        self.available = [
+            seed
+            for seed in (42, 43, 44)
+            if (self.runs_dir / "bert" / "5shot" / f"seed{seed}" / "confusion_matrix.csv").exists()
+            and (self.runs_dir / "supcon" / "5shot" / f"seed{seed}" / "confusion_matrix.csv").exists()
+        ]
+        if len(self.available) < 3:
+            self.skipTest("needs the completed three-seed matrix")
+
+    def test_reports_per_group_deltas_across_seeds(self) -> None:
+        from analysis.confusion_pairs import group_aggregate_over_seeds
+
+        result = group_aggregate_over_seeds("bert", "supcon", "5shot", self.available, self.runs_dir)
+        self.assertEqual(result["seeds"], self.available)
+        self.assertEqual(result["groups_total"], len(CONFUSION_GROUPS))
+        for entry in result["groups"]:
+            self.assertEqual(len(entry["per_seed_delta"]), len(self.available))
+            self.assertAlmostEqual(
+                sum(entry["per_seed_delta"]) / len(entry["per_seed_delta"]),
+                entry["delta"],
+                places=6,
+            )
+
+    def test_consistency_counts_require_every_seed_to_agree(self) -> None:
+        """A pair improved on one seed only must not count as improved."""
+
+        from analysis.confusion_pairs import group_aggregate_over_seeds
+
+        result = group_aggregate_over_seeds("bert", "supcon", "5shot", self.available, self.runs_dir)
+        improved = result["pairs_consistently_improved"]
+        worsened = result["pairs_consistently_worsened"]
+        self.assertLessEqual(improved + worsened, result["pairs_compared"])
+        # A pair cannot both always improve and always worsen.
+        self.assertFalse(set(result["consistently_improved_labels"]) & set(result["consistently_worsened_labels"]))
+
+    def test_missing_runs_are_skipped_rather_than_crashing(self) -> None:
+        from analysis.confusion_pairs import group_aggregate_over_seeds
+
+        result = group_aggregate_over_seeds(
+            "bert", "supcon", "5shot", [42, 999], self.runs_dir
+        )
+        self.assertEqual(result["seeds"], [42])
+
+
 if __name__ == "__main__":
     unittest.main()
