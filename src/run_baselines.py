@@ -54,6 +54,15 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--freeze-layers", type=int, default=0, help="freeze embeddings and N lowest BERT layers")
     parser.add_argument("--supcon-temperature", type=float, default=None)
     parser.add_argument("--supcon-epochs", type=int, default=None)
+    parser.add_argument("--supcon-learning-rate", type=float, default=None)
+    parser.add_argument("--classifier-epochs", type=int, default=None)
+    parser.add_argument("--classifier-lr", type=float, default=None)
+    parser.add_argument(
+        "--shots-per-class",
+        type=int,
+        default=None,
+        help="samples per class in each contrastive batch; must be >= 2",
+    )
     parser.add_argument("--hn-temperature", type=float, default=None)
     parser.add_argument("--config", type=str, default=None, help="frozen JSON config file (overrides defaults)")
     return parser.parse_args()
@@ -76,9 +85,20 @@ def kwargs_for(method: str, args: argparse.Namespace) -> dict[str, Any]:
             "freeze_layers": args.freeze_layers,
         }
         if method != "bert":
-            values["supcon_temperature"] = args.supcon_temperature
-            values["supcon_epochs"] = args.supcon_epochs
-            if method == "supcon_hn":
+            # Only forward SupCon options that were actually given: passing the
+            # argparse default of None would override each runner's own
+            # default with None.
+            for key, value in (
+                ("supcon_temperature", args.supcon_temperature),
+                ("supcon_epochs", args.supcon_epochs),
+                ("supcon_learning_rate", args.supcon_learning_rate),
+                ("classifier_epochs", args.classifier_epochs),
+                ("classifier_lr", args.classifier_lr),
+                ("shots_per_class", args.shots_per_class),
+            ):
+                if value is not None:
+                    values[key] = value
+            if method == "supcon_hn" and args.hn_temperature is not None:
                 values["hn_temperature"] = args.hn_temperature
         else:
             for key, value in (

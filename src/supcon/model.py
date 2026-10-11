@@ -84,14 +84,13 @@ class BalancedBatchSampler(torch.utils.data.Sampler[list[int]]):
 
     Supervised contrastive learning needs each anchor to have at least one
     positive in its batch.  Uniform shuffling makes that unlikely for 77
-    classes: with batch size 32 the chance that a given class has a partner is
-    low, so most anchors would be dropped from the loss and the gradient would
-    be dominated by a handful of classes.
+    classes, so each batch is built from whole per-class groups.
 
-    The sampler draws ``batch_size // num_classes`` samples per class per step.
-    When ``batch_size`` is not divisible by the number of classes it uses as
-    many whole groups as fit and drops the remainder, which keeps every batch
-    balanced at the cost of a slightly smaller effective batch.
+    ``shots_per_class`` must be at least 2.  With ``batch_size == num_classes``
+    the natural reading is one sample per class, which leaves *no* anchor with
+    a positive and makes the loss identically zero - the model trains on
+    nothing.  The sampler therefore uses two samples per class by default, so
+    every anchor in a 77-class batch has exactly one positive.
     """
 
     def __init__(
@@ -99,45 +98,53 @@ class BalancedBatchSampler(torch.utils.data.Sampler[list[int]]):
         labels: np.ndarray,
         batch_size: int,
         num_classes: int,
+        shots_per_class: int = 2,
         generator: torch.Generator | None = None,
     ) -> None:
         self.labels = np.asarray(labels)
         self.batch_size = batch_size
         self.num_classes = num_classes
         self.generator = generator
-        self.per_class = max(1, batch_size // num_classes)
+        if shots_per_class < 2:
+            raise ValueError(
+                "shots_per_class must be >= 2; with one sample per class no anchor "
+                "has a positive and the supervised contrastive loss is zero"
+            )
+        self.per_class = max(2, shots_per_class)
         self.effective_batch_size = self.per_class * num_classes
         self.class_indices: list[np.ndarray] = [
             np.flatnonzero(self.labels == cls) for cls in range(num_classes)
         ]
-        empty = [int(cls) for cls, idx in enumerate(self.class_indices) if len(idx) == 0]
-        if empty:
-            raise ValueError(f"classes with no training examples: {empty}")
-        self.epoch_size = max(
-            len(idx) for idx in self.class_indices
-        )  # steps needed to see every example once
+        too_small = [
+            int(cls) for cls, idx in enumerate(self.class_indices) if len(idx) < self.per_class
+        ]
+        if too_small:
+            raise ValueError(
+                f"classes with fewer than {self.per_class} training examples: {too_small}"
+            )
+        # Enough steps for every example to appear at least once per epoch.
+        largest = max(len(idx) for idx in self.class_indices)
+        self.epoch_size = largest
+        self.steps_per_epoch = max(1, largest // self.per_class)
 
     def __len__(self) -> int:
-        return max(1, self.epoch_size // self.per_class)
+        return self.steps_per_epoch
 
     def __iter__(self) -> Iterator[list[int]]:
-        rng = np.random.default_rng(
-            int(self.generator.initial_seed()) if self.generator is not None else 0
-        )
+        seed = int(self.generator.initial_seed()) if self.generator is not None else 0
+        rng = np.random.default_rng(seed)
         offsets = [rng.permutation(idx) for idx in self.class_indices]
         cursors = [0] * self.num_classes
-        steps = len(self)
-        for _ in range(steps):
+        for _ in range(self.steps_per_epoch):
             batch: list[int] = []
             for cls in range(self.num_classes):
                 pool = offsets[cls]
-                for _ in range(self.per_class):
-                    if cursors[cls] >= len(pool):
-                        offsets[cls] = rng.permutation(self.class_indices[cls])
-                        pool = offsets[cls]
-                        cursors[cls] = 0
-                    batch.append(int(pool[cursors[cls]]))
-                    cursors[cls] += 1
+                if cursors[cls] + self.per_class > len(pool):
+                    offsets[cls] = rng.permutation(self.class_indices[cls])
+                    pool = offsets[cls]
+                    cursors[cls] = 0
+                batch.extend(int(pool[pos]) for pos in range(cursors[cls], cursors[cls] + self.per_class))
+                cursors[cls] += self.per_class
             yield batch
 
 
@@ -159,6 +166,7 @@ def build_loader(
     num_classes: int,
     seed: int,
     shuffle: bool,
+    shots_per_class: int = 2,
 ) -> DataLoader:
     collate = collate_with_padding(tokenizer)
     generator = torch.Generator()
@@ -168,6 +176,7 @@ def build_loader(
             np.asarray([dataset[i]["labels"] for i in range(len(dataset))]),
             batch_size=batch_size,
             num_classes=num_classes,
+            shots_per_class=shots_per_class,
             generator=generator,
         )
         return DataLoader(

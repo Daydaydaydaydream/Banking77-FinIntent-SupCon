@@ -57,9 +57,11 @@ def run(
     model_name: str = BERT_MODEL,
     supcon_temperature: float = 0.1,
     supcon_epochs: int = 20,
-    classifier_epochs: int = 20,
+    supcon_learning_rate: float = 5e-5,
+    classifier_epochs: int = 30,
     classifier_lr: float = 1e-3,
     weight_decay: float = 0.01,
+    shots_per_class: int = 2,
     batch_size: int = 77,
     eval_batch_size: int = 128,
     max_length: int = 64,
@@ -123,9 +125,11 @@ def run(
         "test_rows": len(test),
         "supcon_temperature": supcon_temperature,
         "supcon_epochs": supcon_epochs,
+        "supcon_learning_rate": supcon_learning_rate,
         "classifier_epochs": classifier_epochs,
         "classifier_lr": classifier_lr,
         "weight_decay": weight_decay,
+        "shots_per_class": shots_per_class,
         "batch_size": batch_size,
         "max_length": max_length,
         "hard_negative_temperature": effective_hn_temperature,
@@ -161,12 +165,20 @@ def run(
         num_classes=len(categories),
         seed=seed,
         shuffle=True,
+        shots_per_class=shots_per_class,
     )
     effective_batch = getattr(contrastive_loader.batch_sampler, "effective_batch_size", batch_size)
 
+    # The encoder needs a transformer-scale learning rate; the linear head
+    # needs a much larger one.  Sharing a single value either under-trains the
+    # encoder or destabilises the head.
     optimizer = torch.optim.AdamW(
-        [p for p in model.parameters() if p.requires_grad],
-        lr=classifier_lr,
+        [
+            {"params": list(model.encoder.parameters()) + list(model.projection.parameters()),
+             "lr": supcon_learning_rate},
+            {"params": model.classifier.parameters(), "lr": classifier_lr},
+        ],
+        lr=supcon_learning_rate,
         weight_decay=weight_decay,
     )
     amp_dtype = torch.bfloat16 if str(precision_policy["resolved"]) == "bf16" else None
@@ -179,6 +191,7 @@ def run(
         model.train()
         epoch_loss = 0.0
         epoch_anchors = 0
+        zero_loss_batches = 0
         for batch in contrastive_loader:
             optimizer.zero_grad(set_to_none=True)
             with torch.autocast(
@@ -204,6 +217,13 @@ def run(
                     {"epoch": epoch, "step": epoch_anchors, "reason": "non_finite_loss"}
                 )
                 continue
+            # A batch where no anchor has a positive yields a loss of exactly
+            # zero.  Backpropagating that produces no gradient at all, so the
+            # step is skipped and the batch counted.
+            if float(loss.detach()) == 0.0:
+                epoch_anchors += 1
+                zero_loss_batches += 1
+                continue
             scaler.scale(loss).backward()
             scaler.unscale_(optimizer)
             grad_norm = torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
@@ -218,10 +238,26 @@ def run(
             scaler.update()
             epoch_loss += float(loss.detach())
             epoch_anchors += 1
+        mean_loss = epoch_loss / max(1, epoch_anchors)
         contrastive_history.append(
-            {"epoch": epoch, "supcon_loss": epoch_loss / max(1, epoch_anchors), "steps": epoch_anchors}
+            {
+                "epoch": epoch,
+                "supcon_loss": mean_loss,
+                "steps": epoch_anchors,
+                "zero_loss_batches": zero_loss_batches,
+            }
         )
     contrastive_seconds = time.perf_counter() - started
+
+    # A contrastive phase that never moved the encoder makes SupCon identical
+    # to training a linear head on frozen BERT, which would invalidate the
+    # ablation. Flag it instead of letting it pass as a result.
+    if all(entry["supcon_loss"] == 0.0 for entry in contrastive_history):
+        raise RuntimeError(
+            "Supervised contrastive loss stayed at zero for every batch. No anchor "
+            "had a same-class positive, so the encoder received no gradient. Check "
+            "shots_per_class against the few-shot budget."
+        )
 
     # Stage 2: freeze the contrastive encoder and fit a linear head.
     for parameter in model.encoder.parameters():
