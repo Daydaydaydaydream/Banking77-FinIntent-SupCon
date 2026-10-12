@@ -60,20 +60,19 @@ def supervised_contrastive_loss(
     positives = (labels[:, None] == labels[None, :]) & ~self_mask
     has_positive = positives.any(dim=1)
 
-    log_prob = similarity - torch.logsumexp(similarity, dim=1, keepdim=True)
-
-    # ``where`` rather than a multiplication by a 0/1 mask: the diagonal of
-    # ``log_prob`` is -inf, and (-inf) * 0 is nan rather than 0.
+    denominator_logits = similarity
+    if hard_negative_weights is not None:
+        weights = hard_negative_weights.detach().to(device=device, dtype=torch.float32)
+        if weights.shape != similarity.shape or not torch.isfinite(weights).all() or (weights < 0).any():
+            raise ValueError("hard-negative weights must be finite, nonnegative and batch-square")
+        negatives = labels[:, None] != labels[None, :]
+        # Only negative terms are weighted; positive terms retain weight one.
+        effective = torch.where(negatives, weights, torch.ones_like(weights))
+        denominator_logits = similarity + effective.clamp_min(1e-30).log()
+        denominator_logits = denominator_logits.masked_fill(negatives & (weights == 0), float("-inf"))
+    log_prob = similarity - torch.logsumexp(denominator_logits, dim=1, keepdim=True)
     positive_log_prob = torch.where(positives, log_prob, torch.zeros_like(log_prob)).sum(dim=1)
     positive_count = positives.sum(dim=1).clamp(min=1)
-
-    if hard_negative_weights is not None:
-        weights = hard_negative_weights.to(device=device, dtype=torch.float32)
-        weights = weights / weights.sum(dim=1, keepdim=True).clamp(min=1e-12)
-        # Re-weighting a log-sum-exp denominator: subtract the log of the
-        # weighted partition so the result stays a proper log-probability.
-        weighted = torch.log((torch.exp(similarity.masked_fill(self_mask, 0.0)) * weights).sum(dim=1, keepdim=True))
-        log_prob = similarity - weighted
 
     anchor_loss = -(positive_log_prob / positive_count)
     anchor_loss = torch.where(has_positive, anchor_loss, torch.zeros_like(anchor_loss))
@@ -88,9 +87,9 @@ def hard_negative_weight_matrix(
     """Weight each negative in proportion to its similarity to the anchor.
 
     ``similarity`` is a cosine-similarity matrix (before temperature scaling).
-    The returned matrix has ones on the diagonal and on positive pairs, so it
-    leaves the numerator of the loss untouched and only reshapes the
-    denominator.  With a large ``temperature`` the weights flatten towards
+    The returned matrix has zeros on diagonal and positive pairs. The loss
+    applies weights only to negatives, preserving positive terms. Weights
+    are detached and normalised to mean one over negatives in each row.  With a large ``temperature`` the weights flatten towards
     uniform, recovering standard SupCon.
     """
 
@@ -100,10 +99,11 @@ def hard_negative_weight_matrix(
     labels = labels.to(device)
     batch_size = labels.shape[0]
 
-    cosine = similarity.float().clamp(min=-1.0, max=1.0)
+    cosine = similarity.detach().float().clamp(min=-1.0, max=1.0)
     is_negative = labels[:, None] != labels[None, :]
-    identity = torch.eye(batch_size, dtype=torch.bool, device=device)
-
-    weights = torch.exp(cosine / temperature) * is_negative
-    weights = weights.masked_fill(identity, 0.0)
-    return weights
+    counts = is_negative.sum(dim=1, keepdim=True)
+    logits = (cosine / temperature).masked_fill(~is_negative, float("-inf"))
+    logits = torch.where(counts > 0, logits, torch.zeros_like(logits))
+    # Mean negative weight is one, preserving the total negative mass.
+    weights = torch.softmax(logits, dim=1) * counts
+    return weights.masked_fill(~is_negative, 0.0)

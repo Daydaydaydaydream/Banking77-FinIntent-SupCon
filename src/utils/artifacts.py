@@ -65,9 +65,10 @@ class RunArtifacts:
     setting: str
     seed: int
     keep_checkpoints: bool = field(default=False)
+    root: Path | None = None
 
     def __post_init__(self) -> None:
-        self.path = run_dir(self.method, self.setting, self.seed)
+        self.path = (self.root / self.method / self.setting / f"seed{self.seed}") if self.root is not None else run_dir(self.method, self.setting, self.seed)
         self.path.mkdir(parents=True, exist_ok=True)
 
     @property
@@ -146,12 +147,15 @@ class RunArtifacts:
         y_true: np.ndarray,
         scores: np.ndarray,
         categories: list[str],
+        filename: str = "predictions.csv",
     ) -> np.ndarray:
         if scores.shape != (len(texts), len(categories)):
             raise ValueError(f"Unexpected score shape {scores.shape}")
         ranking = np.argsort(-scores, axis=1)
         y_pred = ranking[:, 0]
-        output = self.path / "predictions.csv"
+        if filename not in ("predictions.csv", "validation_predictions.csv"):
+            raise ValueError("Unsupported predictions filename")
+        output = self.path / filename
         with output.open("w", newline="", encoding="utf-8") as handle:
             writer = csv.writer(handle, lineterminator="\n")
             writer.writerow(

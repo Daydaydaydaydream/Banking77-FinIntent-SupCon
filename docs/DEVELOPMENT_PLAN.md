@@ -25,7 +25,7 @@
 
 ## 3. P1：补受控实验，回答方法归因
 
-状态：待开展。先做小规模验证，再决定完整矩阵。
+状态：三组联合训练与 HN 实现修复已完成，71 项测试及三组真实 BERT smoke 通过；正式 36 组待确定 CPU/CUDA 环境后执行。详见 [CONTROLLED_EXPERIMENTS.md](CONTROLLED_EXPERIMENTS.md)。
 
 建议新增三组：CE、CE + SupCon、CE + SupCon + HN。三组采用相同 BERT、分类头、类平衡采样、端到端训练流程和评估入口；分别隔离对比损失与 HN 的增量。原有两阶段方案继续保留，不覆盖旧运行。
 

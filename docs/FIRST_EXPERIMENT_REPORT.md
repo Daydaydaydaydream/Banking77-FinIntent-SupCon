@@ -32,7 +32,7 @@
 | 20-shot | 20 | 1,540 |
 | full | 不限 | 9,000 |
 
-验证集固定不变，官方测试集不参与 checkpoint 选择。Version 1 的完整运行产物见 [`outputs/version1/runs/`](../outputs/version1/runs/)。
+验证集固定不变，官方测试集不参与 checkpoint 选择。Version 1 原归档位置为 `outputs/version1/runs/`，当前检出中不存在；本报告仅作为历史问题记录，不能由该路径复核。
 
 ### 2.2 方法配置
 
@@ -61,8 +61,8 @@
 
 汇总数据和主图可直接查看：
 
-- [`test_metrics_summary.csv`](../outputs/version1/figures/model_results/test_metrics_summary.csv)
-- [`test_macro_f1_comparison.png`](../outputs/version1/figures/model_results/test_macro_f1_comparison.png)
+- `outputs/version1/figures/model_results/test_metrics_summary.csv`（历史路径，当前缺失）
+- `outputs/version1/figures/model_results/test_macro_f1_comparison.png`（历史路径，当前缺失）
 
 Version 1 呈现出三个清楚的现象：
 

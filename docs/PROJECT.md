@@ -129,8 +129,12 @@ t-SNE 等表示可视化只作为辅助证据，不替代定量结果。
 - 5-shot 下 SetFit 平均测试 Macro-F1 为 75.00%，在当前比较方法中最好。
 - 10-shot / 20-shot 下 BERT 分别为 81.37% / 86.29%，在当前比较方法中最好。
 - full 下 SupCon 平均值为 92.99%，BERT 为 92.36%；配对增益并未在三个种子上一致为正。
-- 当前两阶段 SupCon 与难负例加权方案未显示稳定增益，不外推为监督对比学习普遍无效。
+- 当前两阶段 SupCon 未显示稳定增益；旧 HN 结果无效，不外推为监督对比学习普遍无效。
 
 当前可作为实验评估型简历项目，尚不宣称生产部署或实际客服业务收益。后续优先补受控对照、结果解释和交付文档；推理演示作为算法工程岗位的补充。
 
 后续阶段与验收标准见 [DEVELOPMENT_PLAN.md](DEVELOPMENT_PLAN.md)，当前统计见 [RESULTS.md](RESULTS.md)，简历表述与面试准备见 [CAREER_PROJECT.md](CAREER_PROJECT.md)。[FIRST_EXPERIMENT_REPORT.md](FIRST_EXPERIMENT_REPORT.md) 仅保留早期异常排查历史，不代表当前模型性能。
+
+## HN 实现复核更正（2026-10-12）
+
+历史 HN 结果不可用于评估难负例收益：复核发现旧实现计算了加权分母，却没有用它更新最终返回的损失，权重未参与优化。表中旧数值仅为历史记录，须使用修复后的实现重新运行。 联合训练对照代码与验证见 [CONTROLLED_EXPERIMENTS.md](CONTROLLED_EXPERIMENTS.md)。

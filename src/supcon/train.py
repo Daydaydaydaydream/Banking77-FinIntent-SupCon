@@ -111,7 +111,7 @@ def run(
     test_dataset = TextDataset(test_encodings, y_test)
 
     effective_hn_temperature = (
-        hn_temperature if method == "supcon_hn" and hn_temperature is not None else None
+        (0.5 if hn_temperature is None else hn_temperature) if method == "supcon_hn" else None
     )
 
     artifacts = RunArtifacts(method, setting, seed, keep_checkpoints=keep_checkpoints)
@@ -133,6 +133,7 @@ def run(
         "batch_size": batch_size,
         "max_length": max_length,
         "hard_negative_temperature": effective_hn_temperature,
+        "loss_implementation": "negative-mean-one-detached-logsumexp-v2",
         "device": selected_device,
         "precision": precision_policy,
         "freeze_layers": freeze_layers,

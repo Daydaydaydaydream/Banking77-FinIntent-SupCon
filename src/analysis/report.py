@@ -190,6 +190,7 @@ def main() -> None:
 
     parts: list[str] = []
     parts.append("# 实验结果\n")
+    parts.append('> 历史 HN 结果不可用于评估难负例收益：复核发现旧实现计算了加权分母，却没有用它更新最终返回的损失，权重未参与优化。表中旧数值仅为历史记录，须使用修复后的实现重新运行。\n')
     parts.append(
         "本报告的统计由 `outputs/runs/` 下的 `metrics.json` 与 `confusion_matrix.csv` 重新汇总得到，"
         "主结果为多随机种子的均值与样本标准差；单种子分析单独注明。\n"
