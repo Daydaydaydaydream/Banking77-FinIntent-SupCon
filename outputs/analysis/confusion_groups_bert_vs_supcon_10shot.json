@@ -109,24 +109,14 @@
   "groups_total": 8,
   "pairs_compared": 29,
   "pairs_consistently_improved": 1,
-  "pairs_consistently_worsened": 14,
+  "pairs_consistently_worsened": 4,
   "consistently_improved_labels": [
     "card_payment_wrong_exchange_rate <-> wrong_exchange_rate_for_cash_withdrawal"
   ],
   "consistently_worsened_labels": [
-    "unable_to_verify_identity <-> verify_source_of_funds",
     "unable_to_verify_identity <-> why_verify_identity",
-    "verify_my_identity <-> verify_source_of_funds",
-    "pending_top_up <-> top_up_by_bank_transfer_charge",
-    "top_up_by_bank_transfer_charge <-> top_up_reverted",
     "top_up_failed <-> top_up_reverted",
-    "card_arrival <-> card_not_working",
-    "card_delivery_estimate <-> card_not_working",
-    "card_not_working <-> order_physical_card",
-    "declined_card_payment <-> declined_cash_withdrawal",
     "declined_card_payment <-> declined_transfer",
-    "balance_not_updated_after_bank_transfer <-> balance_not_updated_after_cheque_or_cash_deposit",
-    "disposable_card_limits <-> virtual_card_not_working",
-    "get_disposable_virtual_card <-> virtual_card_not_working"
+    "balance_not_updated_after_bank_transfer <-> balance_not_updated_after_cheque_or_cash_deposit"
   ]
 }

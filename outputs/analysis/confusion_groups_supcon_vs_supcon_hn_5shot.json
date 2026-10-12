@@ -109,29 +109,9 @@
   "groups_total": 8,
   "pairs_compared": 29,
   "pairs_consistently_improved": 0,
-  "pairs_consistently_worsened": 21,
+  "pairs_consistently_worsened": 1,
   "consistently_improved_labels": [],
   "consistently_worsened_labels": [
-    "unable_to_verify_identity <-> verify_my_identity",
-    "unable_to_verify_identity <-> verify_source_of_funds",
-    "unable_to_verify_identity <-> why_verify_identity",
-    "verify_my_identity <-> verify_source_of_funds",
-    "verify_my_identity <-> why_verify_identity",
-    "verify_source_of_funds <-> why_verify_identity",
-    "pending_top_up <-> top_up_by_bank_transfer_charge",
-    "top_up_by_bank_transfer_charge <-> top_up_failed",
-    "top_up_by_bank_transfer_charge <-> top_up_reverted",
-    "top_up_failed <-> top_up_reverted",
-    "card_arrival <-> card_delivery_estimate",
-    "card_arrival <-> order_physical_card",
-    "card_not_working <-> order_physical_card",
-    "declined_card_payment <-> declined_cash_withdrawal",
-    "declined_card_payment <-> declined_transfer",
-    "card_payment_wrong_exchange_rate <-> exchange_rate",
-    "card_payment_wrong_exchange_rate <-> wrong_exchange_rate_for_cash_withdrawal",
-    "exchange_rate <-> wrong_exchange_rate_for_cash_withdrawal",
-    "disposable_card_limits <-> get_disposable_virtual_card",
-    "disposable_card_limits <-> virtual_card_not_working",
-    "get_disposable_virtual_card <-> virtual_card_not_working"
+    "verify_my_identity <-> why_verify_identity"
   ]
 }

@@ -1,0 +1,630 @@
+{
+  "expected_runs": 60,
+  "audited_runs": 60,
+  "errors": 0,
+  "runs_with_missing_test_predictions": 60,
+  "split_errors": [],
+  "reconstructed_split": {
+    "train": 9000,
+    "validation": 1003,
+    "test": 3080
+  },
+  "source_sha256": {
+    "train_path": "data/banking_data/train.csv",
+    "test_path": "data/banking_data/test.csv",
+    "train_sha256": "b06e26ac675513959a63135f11b94ea7786ed02da65db93a5650d8838cbc664b",
+    "test_sha256": "d12d6e3bc4c3103966ae786dc435913c0c563dfa328f5a3646d0e62cfeeb474d"
+  },
+  "split_sha256": {
+    "train": "cd7de36ef0151f52b0ef96485c589cf35fdf6768368a93158c484d286cdbc4e6",
+    "val": "26ee6f85c176f4cc7ebea139dbe5f6f8d4c0849c8f89daa528f7341fd194d451",
+    "test": "e10f6bc95fe4e3eb5e8060f60f09aee8b17d03f23ce0047d9511e8003c26c808"
+  },
+  "normalized_overlap": {
+    "train/val": 0,
+    "train/test": 19,
+    "val/test": 6
+  },
+  "runs": [
+    {
+      "run": "tfidf_svm/full/seed42",
+      "errors": [],
+      "limitations": [
+        "historical test predictions missing",
+        "historical validation predictions missing",
+        "historical training data fingerprint missing; reconstructed sampling is not proof of historical usage"
+      ],
+      "reconstructed_train_sha256": "cd7de36ef0151f52b0ef96485c589cf35fdf6768368a93158c484d286cdbc4e6"
+    },
+    {
+      "run": "tfidf_svm/full/seed43",
+      "errors": [],
+      "limitations": [
+        "historical test predictions missing",
+        "historical validation predictions missing",
+        "historical training data fingerprint missing; reconstructed sampling is not proof of historical usage"
+      ],
+      "reconstructed_train_sha256": "cd7de36ef0151f52b0ef96485c589cf35fdf6768368a93158c484d286cdbc4e6"
+    },
+    {
+      "run": "tfidf_svm/full/seed44",
+      "errors": [],
+      "limitations": [
+        "historical test predictions missing",
+        "historical validation predictions missing",
+        "historical training data fingerprint missing; reconstructed sampling is not proof of historical usage"
+      ],
+      "reconstructed_train_sha256": "cd7de36ef0151f52b0ef96485c589cf35fdf6768368a93158c484d286cdbc4e6"
+    },
+    {
+      "run": "tfidf_svm/5shot/seed42",
+      "errors": [],
+      "limitations": [
+        "historical test predictions missing",
+        "historical validation predictions missing",
+        "historical training data fingerprint missing; reconstructed sampling is not proof of historical usage"
+      ],
+      "reconstructed_train_sha256": "dad5d3798bad46e786a5d4fd30b5f17150c616843993c9a401a533ea37f788b5"
+    },
+    {
+      "run": "tfidf_svm/5shot/seed43",
+      "errors": [],
+      "limitations": [
+        "historical test predictions missing",
+        "historical validation predictions missing",
+        "historical training data fingerprint missing; reconstructed sampling is not proof of historical usage"
+      ],
+      "reconstructed_train_sha256": "6bd040b95c8773d6bc02148c803a57573f89bbae9417ab3dc96a7b02897c03d3"
+    },
+    {
+      "run": "tfidf_svm/5shot/seed44",
+      "errors": [],
+      "limitations": [
+        "historical test predictions missing",
+        "historical validation predictions missing",
+        "historical training data fingerprint missing; reconstructed sampling is not proof of historical usage"
+      ],
+      "reconstructed_train_sha256": "5c9790882d77773ec40a6c13dd5443b12c5087d8fea8613d973e1eff94ce1ce1"
+    },
+    {
+      "run": "tfidf_svm/10shot/seed42",
+      "errors": [],
+      "limitations": [
+        "historical test predictions missing",
+        "historical validation predictions missing",
+        "historical training data fingerprint missing; reconstructed sampling is not proof of historical usage"
+      ],
+      "reconstructed_train_sha256": "9967f0322fa5cf423c1dba6a8b2a7c10488aeea0d8fbf7ad4bf868d9111419a0"
+    },
+    {
+      "run": "tfidf_svm/10shot/seed43",
+      "errors": [],
+      "limitations": [
+        "historical test predictions missing",
+        "historical validation predictions missing",
+        "historical training data fingerprint missing; reconstructed sampling is not proof of historical usage"
+      ],
+      "reconstructed_train_sha256": "c94caaae9c60bac69730e5d6e36e62db45caa11ecea20a0699571a9efa48c905"
+    },
+    {
+      "run": "tfidf_svm/10shot/seed44",
+      "errors": [],
+      "limitations": [
+        "historical test predictions missing",
+        "historical validation predictions missing",
+        "historical training data fingerprint missing; reconstructed sampling is not proof of historical usage"
+      ],
+      "reconstructed_train_sha256": "44de40006f8dc06266adc85b69bc7254b757fd4986e634f5bf725a10c533963b"
+    },
+    {
+      "run": "tfidf_svm/20shot/seed42",
+      "errors": [],
+      "limitations": [
+        "historical test predictions missing",
+        "historical validation predictions missing",
+        "historical training data fingerprint missing; reconstructed sampling is not proof of historical usage"
+      ],
+      "reconstructed_train_sha256": "8b1cf271c2ef988ed102053b2418c1debad228844096354762e0bb2d603ada36"
+    },
+    {
+      "run": "tfidf_svm/20shot/seed43",
+      "errors": [],
+      "limitations": [
+        "historical test predictions missing",
+        "historical validation predictions missing",
+        "historical training data fingerprint missing; reconstructed sampling is not proof of historical usage"
+      ],
+      "reconstructed_train_sha256": "1207df444a233f4c02d1719f65ce15f19426d0cf40e1060056fbd3c0cf7d8c4b"
+    },
+    {
+      "run": "tfidf_svm/20shot/seed44",
+      "errors": [],
+      "limitations": [
+        "historical test predictions missing",
+        "historical validation predictions missing",
+        "historical training data fingerprint missing; reconstructed sampling is not proof of historical usage"
+      ],
+      "reconstructed_train_sha256": "378870b0738461376c1a280f441c6f9bd89331dc24f1cd0967d2a8602e2386ce"
+    },
+    {
+      "run": "bert/full/seed42",
+      "errors": [],
+      "limitations": [
+        "historical test predictions missing",
+        "historical validation predictions missing",
+        "historical training data fingerprint missing; reconstructed sampling is not proof of historical usage"
+      ],
+      "reconstructed_train_sha256": "cd7de36ef0151f52b0ef96485c589cf35fdf6768368a93158c484d286cdbc4e6"
+    },
+    {
+      "run": "bert/full/seed43",
+      "errors": [],
+      "limitations": [
+        "historical test predictions missing",
+        "historical validation predictions missing",
+        "historical training data fingerprint missing; reconstructed sampling is not proof of historical usage"
+      ],
+      "reconstructed_train_sha256": "cd7de36ef0151f52b0ef96485c589cf35fdf6768368a93158c484d286cdbc4e6"
+    },
+    {
+      "run": "bert/full/seed44",
+      "errors": [],
+      "limitations": [
+        "historical test predictions missing",
+        "historical validation predictions missing",
+        "historical training data fingerprint missing; reconstructed sampling is not proof of historical usage"
+      ],
+      "reconstructed_train_sha256": "cd7de36ef0151f52b0ef96485c589cf35fdf6768368a93158c484d286cdbc4e6"
+    },
+    {
+      "run": "bert/5shot/seed42",
+      "errors": [],
+      "limitations": [
+        "historical test predictions missing",
+        "historical validation predictions missing",
+        "historical training data fingerprint missing; reconstructed sampling is not proof of historical usage"
+      ],
+      "reconstructed_train_sha256": "dad5d3798bad46e786a5d4fd30b5f17150c616843993c9a401a533ea37f788b5"
+    },
+    {
+      "run": "bert/5shot/seed43",
+      "errors": [],
+      "limitations": [
+        "historical test predictions missing",
+        "historical validation predictions missing",
+        "historical training data fingerprint missing; reconstructed sampling is not proof of historical usage"
+      ],
+      "reconstructed_train_sha256": "6bd040b95c8773d6bc02148c803a57573f89bbae9417ab3dc96a7b02897c03d3"
+    },
+    {
+      "run": "bert/5shot/seed44",
+      "errors": [],
+      "limitations": [
+        "historical test predictions missing",
+        "historical validation predictions missing",
+        "historical training data fingerprint missing; reconstructed sampling is not proof of historical usage"
+      ],
+      "reconstructed_train_sha256": "5c9790882d77773ec40a6c13dd5443b12c5087d8fea8613d973e1eff94ce1ce1"
+    },
+    {
+      "run": "bert/10shot/seed42",
+      "errors": [],
+      "limitations": [
+        "historical test predictions missing",
+        "historical validation predictions missing",
+        "historical training data fingerprint missing; reconstructed sampling is not proof of historical usage"
+      ],
+      "reconstructed_train_sha256": "9967f0322fa5cf423c1dba6a8b2a7c10488aeea0d8fbf7ad4bf868d9111419a0"
+    },
+    {
+      "run": "bert/10shot/seed43",
+      "errors": [],
+      "limitations": [
+        "historical test predictions missing",
+        "historical validation predictions missing",
+        "historical training data fingerprint missing; reconstructed sampling is not proof of historical usage"
+      ],
+      "reconstructed_train_sha256": "c94caaae9c60bac69730e5d6e36e62db45caa11ecea20a0699571a9efa48c905"
+    },
+    {
+      "run": "bert/10shot/seed44",
+      "errors": [],
+      "limitations": [
+        "historical test predictions missing",
+        "historical validation predictions missing",
+        "historical training data fingerprint missing; reconstructed sampling is not proof of historical usage"
+      ],
+      "reconstructed_train_sha256": "44de40006f8dc06266adc85b69bc7254b757fd4986e634f5bf725a10c533963b"
+    },
+    {
+      "run": "bert/20shot/seed42",
+      "errors": [],
+      "limitations": [
+        "historical test predictions missing",
+        "historical validation predictions missing",
+        "historical training data fingerprint missing; reconstructed sampling is not proof of historical usage"
+      ],
+      "reconstructed_train_sha256": "8b1cf271c2ef988ed102053b2418c1debad228844096354762e0bb2d603ada36"
+    },
+    {
+      "run": "bert/20shot/seed43",
+      "errors": [],
+      "limitations": [
+        "historical test predictions missing",
+        "historical validation predictions missing",
+        "historical training data fingerprint missing; reconstructed sampling is not proof of historical usage"
+      ],
+      "reconstructed_train_sha256": "1207df444a233f4c02d1719f65ce15f19426d0cf40e1060056fbd3c0cf7d8c4b"
+    },
+    {
+      "run": "bert/20shot/seed44",
+      "errors": [],
+      "limitations": [
+        "historical test predictions missing",
+        "historical validation predictions missing",
+        "historical training data fingerprint missing; reconstructed sampling is not proof of historical usage"
+      ],
+      "reconstructed_train_sha256": "378870b0738461376c1a280f441c6f9bd89331dc24f1cd0967d2a8602e2386ce"
+    },
+    {
+      "run": "setfit/full/seed42",
+      "errors": [],
+      "limitations": [
+        "historical test predictions missing",
+        "historical validation predictions missing",
+        "historical training data fingerprint missing; reconstructed sampling is not proof of historical usage"
+      ],
+      "reconstructed_train_sha256": "cd7de36ef0151f52b0ef96485c589cf35fdf6768368a93158c484d286cdbc4e6"
+    },
+    {
+      "run": "setfit/full/seed43",
+      "errors": [],
+      "limitations": [
+        "historical test predictions missing",
+        "historical validation predictions missing",
+        "historical training data fingerprint missing; reconstructed sampling is not proof of historical usage"
+      ],
+      "reconstructed_train_sha256": "cd7de36ef0151f52b0ef96485c589cf35fdf6768368a93158c484d286cdbc4e6"
+    },
+    {
+      "run": "setfit/full/seed44",
+      "errors": [],
+      "limitations": [
+        "historical test predictions missing",
+        "historical validation predictions missing",
+        "historical training data fingerprint missing; reconstructed sampling is not proof of historical usage"
+      ],
+      "reconstructed_train_sha256": "cd7de36ef0151f52b0ef96485c589cf35fdf6768368a93158c484d286cdbc4e6"
+    },
+    {
+      "run": "setfit/5shot/seed42",
+      "errors": [],
+      "limitations": [
+        "historical test predictions missing",
+        "historical validation predictions missing",
+        "historical training data fingerprint missing; reconstructed sampling is not proof of historical usage"
+      ],
+      "reconstructed_train_sha256": "dad5d3798bad46e786a5d4fd30b5f17150c616843993c9a401a533ea37f788b5"
+    },
+    {
+      "run": "setfit/5shot/seed43",
+      "errors": [],
+      "limitations": [
+        "historical test predictions missing",
+        "historical validation predictions missing",
+        "historical training data fingerprint missing; reconstructed sampling is not proof of historical usage"
+      ],
+      "reconstructed_train_sha256": "6bd040b95c8773d6bc02148c803a57573f89bbae9417ab3dc96a7b02897c03d3"
+    },
+    {
+      "run": "setfit/5shot/seed44",
+      "errors": [],
+      "limitations": [
+        "historical test predictions missing",
+        "historical validation predictions missing",
+        "historical training data fingerprint missing; reconstructed sampling is not proof of historical usage"
+      ],
+      "reconstructed_train_sha256": "5c9790882d77773ec40a6c13dd5443b12c5087d8fea8613d973e1eff94ce1ce1"
+    },
+    {
+      "run": "setfit/10shot/seed42",
+      "errors": [],
+      "limitations": [
+        "historical test predictions missing",
+        "historical validation predictions missing",
+        "historical training data fingerprint missing; reconstructed sampling is not proof of historical usage"
+      ],
+      "reconstructed_train_sha256": "9967f0322fa5cf423c1dba6a8b2a7c10488aeea0d8fbf7ad4bf868d9111419a0"
+    },
+    {
+      "run": "setfit/10shot/seed43",
+      "errors": [],
+      "limitations": [
+        "historical test predictions missing",
+        "historical validation predictions missing",
+        "historical training data fingerprint missing; reconstructed sampling is not proof of historical usage"
+      ],
+      "reconstructed_train_sha256": "c94caaae9c60bac69730e5d6e36e62db45caa11ecea20a0699571a9efa48c905"
+    },
+    {
+      "run": "setfit/10shot/seed44",
+      "errors": [],
+      "limitations": [
+        "historical test predictions missing",
+        "historical validation predictions missing",
+        "historical training data fingerprint missing; reconstructed sampling is not proof of historical usage"
+      ],
+      "reconstructed_train_sha256": "44de40006f8dc06266adc85b69bc7254b757fd4986e634f5bf725a10c533963b"
+    },
+    {
+      "run": "setfit/20shot/seed42",
+      "errors": [],
+      "limitations": [
+        "historical test predictions missing",
+        "historical validation predictions missing",
+        "historical training data fingerprint missing; reconstructed sampling is not proof of historical usage"
+      ],
+      "reconstructed_train_sha256": "8b1cf271c2ef988ed102053b2418c1debad228844096354762e0bb2d603ada36"
+    },
+    {
+      "run": "setfit/20shot/seed43",
+      "errors": [],
+      "limitations": [
+        "historical test predictions missing",
+        "historical validation predictions missing",
+        "historical training data fingerprint missing; reconstructed sampling is not proof of historical usage"
+      ],
+      "reconstructed_train_sha256": "1207df444a233f4c02d1719f65ce15f19426d0cf40e1060056fbd3c0cf7d8c4b"
+    },
+    {
+      "run": "setfit/20shot/seed44",
+      "errors": [],
+      "limitations": [
+        "historical test predictions missing",
+        "historical validation predictions missing",
+        "historical training data fingerprint missing; reconstructed sampling is not proof of historical usage"
+      ],
+      "reconstructed_train_sha256": "378870b0738461376c1a280f441c6f9bd89331dc24f1cd0967d2a8602e2386ce"
+    },
+    {
+      "run": "supcon/full/seed42",
+      "errors": [],
+      "limitations": [
+        "historical test predictions missing",
+        "historical validation predictions missing",
+        "historical training data fingerprint missing; reconstructed sampling is not proof of historical usage"
+      ],
+      "reconstructed_train_sha256": "cd7de36ef0151f52b0ef96485c589cf35fdf6768368a93158c484d286cdbc4e6"
+    },
+    {
+      "run": "supcon/full/seed43",
+      "errors": [],
+      "limitations": [
+        "historical test predictions missing",
+        "historical validation predictions missing",
+        "historical training data fingerprint missing; reconstructed sampling is not proof of historical usage"
+      ],
+      "reconstructed_train_sha256": "cd7de36ef0151f52b0ef96485c589cf35fdf6768368a93158c484d286cdbc4e6"
+    },
+    {
+      "run": "supcon/full/seed44",
+      "errors": [],
+      "limitations": [
+        "historical test predictions missing",
+        "historical validation predictions missing",
+        "historical training data fingerprint missing; reconstructed sampling is not proof of historical usage"
+      ],
+      "reconstructed_train_sha256": "cd7de36ef0151f52b0ef96485c589cf35fdf6768368a93158c484d286cdbc4e6"
+    },
+    {
+      "run": "supcon/5shot/seed42",
+      "errors": [],
+      "limitations": [
+        "historical test predictions missing",
+        "historical validation predictions missing",
+        "historical training data fingerprint missing; reconstructed sampling is not proof of historical usage"
+      ],
+      "reconstructed_train_sha256": "dad5d3798bad46e786a5d4fd30b5f17150c616843993c9a401a533ea37f788b5"
+    },
+    {
+      "run": "supcon/5shot/seed43",
+      "errors": [],
+      "limitations": [
+        "historical test predictions missing",
+        "historical validation predictions missing",
+        "historical training data fingerprint missing; reconstructed sampling is not proof of historical usage"
+      ],
+      "reconstructed_train_sha256": "6bd040b95c8773d6bc02148c803a57573f89bbae9417ab3dc96a7b02897c03d3"
+    },
+    {
+      "run": "supcon/5shot/seed44",
+      "errors": [],
+      "limitations": [
+        "historical test predictions missing",
+        "historical validation predictions missing",
+        "historical training data fingerprint missing; reconstructed sampling is not proof of historical usage"
+      ],
+      "reconstructed_train_sha256": "5c9790882d77773ec40a6c13dd5443b12c5087d8fea8613d973e1eff94ce1ce1"
+    },
+    {
+      "run": "supcon/10shot/seed42",
+      "errors": [],
+      "limitations": [
+        "historical test predictions missing",
+        "historical validation predictions missing",
+        "historical training data fingerprint missing; reconstructed sampling is not proof of historical usage"
+      ],
+      "reconstructed_train_sha256": "9967f0322fa5cf423c1dba6a8b2a7c10488aeea0d8fbf7ad4bf868d9111419a0"
+    },
+    {
+      "run": "supcon/10shot/seed43",
+      "errors": [],
+      "limitations": [
+        "historical test predictions missing",
+        "historical validation predictions missing",
+        "historical training data fingerprint missing; reconstructed sampling is not proof of historical usage"
+      ],
+      "reconstructed_train_sha256": "c94caaae9c60bac69730e5d6e36e62db45caa11ecea20a0699571a9efa48c905"
+    },
+    {
+      "run": "supcon/10shot/seed44",
+      "errors": [],
+      "limitations": [
+        "historical test predictions missing",
+        "historical validation predictions missing",
+        "historical training data fingerprint missing; reconstructed sampling is not proof of historical usage"
+      ],
+      "reconstructed_train_sha256": "44de40006f8dc06266adc85b69bc7254b757fd4986e634f5bf725a10c533963b"
+    },
+    {
+      "run": "supcon/20shot/seed42",
+      "errors": [],
+      "limitations": [
+        "historical test predictions missing",
+        "historical validation predictions missing",
+        "historical training data fingerprint missing; reconstructed sampling is not proof of historical usage"
+      ],
+      "reconstructed_train_sha256": "8b1cf271c2ef988ed102053b2418c1debad228844096354762e0bb2d603ada36"
+    },
+    {
+      "run": "supcon/20shot/seed43",
+      "errors": [],
+      "limitations": [
+        "historical test predictions missing",
+        "historical validation predictions missing",
+        "historical training data fingerprint missing; reconstructed sampling is not proof of historical usage"
+      ],
+      "reconstructed_train_sha256": "1207df444a233f4c02d1719f65ce15f19426d0cf40e1060056fbd3c0cf7d8c4b"
+    },
+    {
+      "run": "supcon/20shot/seed44",
+      "errors": [],
+      "limitations": [
+        "historical test predictions missing",
+        "historical validation predictions missing",
+        "historical training data fingerprint missing; reconstructed sampling is not proof of historical usage"
+      ],
+      "reconstructed_train_sha256": "378870b0738461376c1a280f441c6f9bd89331dc24f1cd0967d2a8602e2386ce"
+    },
+    {
+      "run": "supcon_hn/full/seed42",
+      "errors": [],
+      "limitations": [
+        "historical test predictions missing",
+        "historical validation predictions missing",
+        "historical training data fingerprint missing; reconstructed sampling is not proof of historical usage"
+      ],
+      "reconstructed_train_sha256": "cd7de36ef0151f52b0ef96485c589cf35fdf6768368a93158c484d286cdbc4e6"
+    },
+    {
+      "run": "supcon_hn/full/seed43",
+      "errors": [],
+      "limitations": [
+        "historical test predictions missing",
+        "historical validation predictions missing",
+        "historical training data fingerprint missing; reconstructed sampling is not proof of historical usage"
+      ],
+      "reconstructed_train_sha256": "cd7de36ef0151f52b0ef96485c589cf35fdf6768368a93158c484d286cdbc4e6"
+    },
+    {
+      "run": "supcon_hn/full/seed44",
+      "errors": [],
+      "limitations": [
+        "historical test predictions missing",
+        "historical validation predictions missing",
+        "historical training data fingerprint missing; reconstructed sampling is not proof of historical usage"
+      ],
+      "reconstructed_train_sha256": "cd7de36ef0151f52b0ef96485c589cf35fdf6768368a93158c484d286cdbc4e6"
+    },
+    {
+      "run": "supcon_hn/5shot/seed42",
+      "errors": [],
+      "limitations": [
+        "historical test predictions missing",
+        "historical validation predictions missing",
+        "historical training data fingerprint missing; reconstructed sampling is not proof of historical usage"
+      ],
+      "reconstructed_train_sha256": "dad5d3798bad46e786a5d4fd30b5f17150c616843993c9a401a533ea37f788b5"
+    },
+    {
+      "run": "supcon_hn/5shot/seed43",
+      "errors": [],
+      "limitations": [
+        "historical test predictions missing",
+        "historical validation predictions missing",
+        "historical training data fingerprint missing; reconstructed sampling is not proof of historical usage"
+      ],
+      "reconstructed_train_sha256": "6bd040b95c8773d6bc02148c803a57573f89bbae9417ab3dc96a7b02897c03d3"
+    },
+    {
+      "run": "supcon_hn/5shot/seed44",
+      "errors": [],
+      "limitations": [
+        "historical test predictions missing",
+        "historical validation predictions missing",
+        "historical training data fingerprint missing; reconstructed sampling is not proof of historical usage"
+      ],
+      "reconstructed_train_sha256": "5c9790882d77773ec40a6c13dd5443b12c5087d8fea8613d973e1eff94ce1ce1"
+    },
+    {
+      "run": "supcon_hn/10shot/seed42",
+      "errors": [],
+      "limitations": [
+        "historical test predictions missing",
+        "historical validation predictions missing",
+        "historical training data fingerprint missing; reconstructed sampling is not proof of historical usage"
+      ],
+      "reconstructed_train_sha256": "9967f0322fa5cf423c1dba6a8b2a7c10488aeea0d8fbf7ad4bf868d9111419a0"
+    },
+    {
+      "run": "supcon_hn/10shot/seed43",
+      "errors": [],
+      "limitations": [
+        "historical test predictions missing",
+        "historical validation predictions missing",
+        "historical training data fingerprint missing; reconstructed sampling is not proof of historical usage"
+      ],
+      "reconstructed_train_sha256": "c94caaae9c60bac69730e5d6e36e62db45caa11ecea20a0699571a9efa48c905"
+    },
+    {
+      "run": "supcon_hn/10shot/seed44",
+      "errors": [],
+      "limitations": [
+        "historical test predictions missing",
+        "historical validation predictions missing",
+        "historical training data fingerprint missing; reconstructed sampling is not proof of historical usage"
+      ],
+      "reconstructed_train_sha256": "44de40006f8dc06266adc85b69bc7254b757fd4986e634f5bf725a10c533963b"
+    },
+    {
+      "run": "supcon_hn/20shot/seed42",
+      "errors": [],
+      "limitations": [
+        "historical test predictions missing",
+        "historical validation predictions missing",
+        "historical training data fingerprint missing; reconstructed sampling is not proof of historical usage"
+      ],
+      "reconstructed_train_sha256": "8b1cf271c2ef988ed102053b2418c1debad228844096354762e0bb2d603ada36"
+    },
+    {
+      "run": "supcon_hn/20shot/seed43",
+      "errors": [],
+      "limitations": [
+        "historical test predictions missing",
+        "historical validation predictions missing",
+        "historical training data fingerprint missing; reconstructed sampling is not proof of historical usage"
+      ],
+      "reconstructed_train_sha256": "1207df444a233f4c02d1719f65ce15f19426d0cf40e1060056fbd3c0cf7d8c4b"
+    },
+    {
+      "run": "supcon_hn/20shot/seed44",
+      "errors": [],
+      "limitations": [
+        "historical test predictions missing",
+        "historical validation predictions missing",
+        "historical training data fingerprint missing; reconstructed sampling is not proof of historical usage"
+      ],
+      "reconstructed_train_sha256": "378870b0738461376c1a280f441c6f9bd89331dc24f1cd0967d2a8602e2386ce"
+    }
+  ]
+}

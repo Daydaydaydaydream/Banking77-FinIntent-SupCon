@@ -6,6 +6,7 @@ import inspect
 import json
 import sys
 import unittest
+from unittest.mock import patch
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
@@ -51,10 +52,14 @@ class AggregateTest(unittest.TestCase):
         self.assertEqual(bert["seeds"], 3)
         self.assertGreater(bert["test_macro_f1_std"], 0.0)
 
-    def test_single_seed_reports_zero_variance_but_no_std_label(self) -> None:
+    def test_single_seed_reports_missing_std(self) -> None:
         rows = [_run("bert", "5shot", 42, 0.61, 0.60)]
         summary = summarise(rows)
-        self.assertEqual(summary.iloc[0]["test_macro_f1_std"], 0.0)
+        self.assertTrue(pd.isna(summary.iloc[0]["test_macro_f1_std"]))
+        self.assertTrue(pd.isna(summary.iloc[0]["validation_macro_f1_std"]))
+        self.assertTrue(pd.isna(seed_consistency(rows).iloc[0]["std_f1"]))
+        paired = paired_comparison(rows + [_run("supcon", "5shot", 42, 0.7, 0.7)], "bert", "supcon")[0]
+        self.assertIsNone(paired["delta_std"])
         label = pivot_table(summary).loc["bert", "5shot"]
         self.assertIn("1 seed", label)
         self.assertNotIn("±", label)
@@ -134,6 +139,39 @@ class ConfusionPairTest(unittest.TestCase):
     def test_missing_labels_are_skipped_rather_than_crashing(self) -> None:
         frame = pd.DataFrame([[0]], index=["a"], columns=["a"])
         self.assertEqual(pair_confusions(frame, [("g", "a", "nonexistent")]), [])
+
+    def test_consistency_requires_strict_change_in_every_seed(self) -> None:
+        from analysis.confusion_pairs import group_aggregate_over_seeds
+
+        for deltas, improved, worsened in [([0, 0, 0], 0, 0),
+                                           ([1, 0, 1], 0, 0),
+                                           ([1, 1, 1], 0, 1),
+                                           ([-1, -1, -1], 1, 0),
+                                           ([-1, 1, 0], 0, 0)]:
+            with self.subTest(deltas=deltas):
+                def load(method, setting, seed, runs_dir):
+                    count = 5 + (deltas[seed] if method == "supcon" else 0)
+                    return pd.DataFrame([[0, count], [0, 0]], index=["a", "b"], columns=["a", "b"]), ["a", "b"]
+                with patch("analysis.confusion_pairs.load_confusion", side_effect=load), patch(
+                    "analysis.confusion_pairs.declared_pairs", return_value=[("g", "a", "b")]
+                ):
+                    result = group_aggregate_over_seeds("bert", "supcon", "5shot", [0, 1, 2])
+                self.assertEqual(result["pairs_consistently_improved"], improved)
+                self.assertEqual(result["pairs_consistently_worsened"], worsened)
+
+    def test_missing_pair_is_not_matched_by_position(self) -> None:
+        from analysis.confusion_pairs import group_aggregate_over_seeds
+
+        def load(method, setting, seed, runs_dir):
+            labels = ["a", "b", "c"] if method == "bert" else ["b", "c"]
+            return pd.DataFrame(0, index=labels, columns=labels), labels
+        with patch("analysis.confusion_pairs.load_confusion", side_effect=load), patch(
+            "analysis.confusion_pairs.declared_pairs", return_value=[("g", "a", "b"), ("g", "b", "c")]
+        ):
+            result = group_aggregate_over_seeds("bert", "supcon", "5shot", [42, 42])
+        self.assertEqual(result["seeds"], [42])
+        self.assertEqual(result["pairs_compared"], 1)
+        self.assertEqual(result["pairs_consistently_worsened"], 0)
 
     def test_group_summary_aggregates_pair_counts(self) -> None:
         rows = [

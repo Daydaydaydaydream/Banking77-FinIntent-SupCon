@@ -91,7 +91,9 @@ def ablation_section(comparisons: list[dict[str, Any]], baseline: str) -> str:
             lines.append(
                 f"| {METHOD_LABELS[treatment]} vs {METHOD_LABELS.get(baseline, baseline)} "
                 f"| {setting} | {row['paired_seeds']} "
-                f"| {row['delta_mean']:+.4f} ± {row['delta_std']:.4f} "
+                f"| {row['delta_mean']:+.4f}"
+                + (f" ± {row['delta_std']:.4f}" if row['delta_std'] is not None else " (1 seed)")
+                + " "
                 f"| {row['delta_min']:+.4f} "
                 f"| {'yes' if row['consistent_gain'] else 'no'} |"
             )
@@ -155,7 +157,7 @@ def _group_table(
         lines.append(
             f"| `{entry['group']}` | {entry['baseline_mean']:.1f} | "
             f"{entry['treatment_mean']:.1f} | {entry['delta']:+.1f} "
-            f"| {'改善' if entry['improved'] else '恶化'} |"
+            f"| {'改善' if entry['delta'] < 0 else '恶化' if entry['delta'] > 0 else '持平'} |"
         )
     lines.append(
         f"\n组改善 {result['groups_improved']}/{result['groups_total']}；"
@@ -189,8 +191,8 @@ def main() -> None:
     parts: list[str] = []
     parts.append("# 实验结果\n")
     parts.append(
-        "本报告的每个数字都由 `outputs/runs/` 下的 `metrics.json` 重新汇总得到，"
-        "没有任何硬编码值。所有结果为多随机种子的均值与标准差。\n"
+        "本报告的统计由 `outputs/runs/` 下的 `metrics.json` 与 `confusion_matrix.csv` 重新汇总得到，"
+        "主结果为多随机种子的均值与样本标准差；单种子分析单独注明。\n"
     )
 
     parts.append("## 1. 主结果表\n")
@@ -208,10 +210,10 @@ def main() -> None:
     pivot = pivot.reindex(columns=[s for s in SETTINGS_ORDER if s in pivot.columns])
     parts.append(_markdown_table(pivot.round(4), index_label="method") + "\n")
 
-    parts.append("## 3. 逐步消融\n")
+    parts.append("## 3. 训练方案配对比较\n")
     parts.append(
         f"以 {METHOD_LABELS.get(args.baseline, args.baseline)} 为对照，"
-        "在相同 backbone、数据划分、批次构造与评估代码下逐级比较。"
+        "使用相同 BERT backbone、数据划分与评估口径，但训练阶段、采样和计算成本不同；这里比较训练方案，不能将差异全部归因于损失函数。"
         "「worst seed」是三种子里最差的那次配对差值；「consistent」表示三次全部为正。\n"
     )
     parts.append(ablation_section(comparisons, args.baseline) + "\n")
@@ -237,7 +239,7 @@ def main() -> None:
     )
     parts.append(
         "单一种子上某个类别对「改善」，可能只是错误转移到了未检查的类别对上。"
-        "因此只有在该类别对上**每个种子都改善**才计为改善。\n"
+        "只有在该类别对上**每个种子的误判数都严格下降／上升**才计为一致改善／恶化；持平不计入。组改善按跨种子均值计算。\n"
     )
     parts.append(
         "| Setting | 组改善 | 三种子均改善的类别对 | 三种子均恶化的类别对 |\n|---|---:|---:|---:|\n"
@@ -253,7 +255,7 @@ def main() -> None:
 
     bert_vs_supcon = compare(args.baseline, "supcon", "5shot", args.seed, args.runs_dir)
     if "error" not in bert_vs_supcon:
-        parts.append("\n### 逐对双向误判变化（BERT → SupCon，5-shot）\n")
+        parts.append(f"\n### 逐对双向误判变化（BERT → SupCon，5-shot，seed {args.seed}，展示变化最大的 15 对）\n")
         parts.append(
             "| 组 | label A | label B | BERT | SupCon | delta | 改善 |\n"
             "|---|---|---|---:|---:|---:|---|\n"

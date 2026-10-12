@@ -77,8 +77,8 @@ def summarise(rows: list[dict[str, Any]]) -> pd.DataFrame:
     ).reset_index()
     # A single seed has no standard deviation; report it as missing rather
     # than 0.0, which would read as "perfectly stable".
-    summary["test_macro_f1_std"] = summary["test_macro_f1_std"].fillna(0.0).round(4)
-    summary["validation_macro_f1_std"] = summary["validation_macro_f1_std"].fillna(0.0).round(4)
+    summary["test_macro_f1_std"] = summary["test_macro_f1_std"].round(4)
+    summary["validation_macro_f1_std"] = summary["validation_macro_f1_std"].round(4)
     summary["test_macro_f1_mean"] = summary["test_macro_f1_mean"].round(4)
     summary["validation_macro_f1_mean"] = summary["validation_macro_f1_mean"].round(4)
     summary["test_accuracy_mean"] = summary["test_accuracy_mean"].round(4)
@@ -154,8 +154,8 @@ def paired_comparison(
     summary["treatment"] = treatment
     summary["consistent_gain"] = summary["delta_min"] > 0
     summary["delta_mean"] = summary["delta_mean"].round(4)
-    summary["delta_std"] = summary["delta_std"].fillna(0.0).round(4)
-    return summary.to_dict("records")
+    summary["delta_std"] = summary["delta_std"].round(4)
+    return summary.astype(object).where(pd.notna(summary), None).to_dict("records")
 
 
 def seed_consistency(rows: list[dict[str, Any]]) -> pd.DataFrame:
@@ -171,7 +171,7 @@ def seed_consistency(rows: list[dict[str, Any]]) -> pd.DataFrame:
         .rename(columns={"count": "seeds", "min": "min_f1", "max": "max_f1", "std": "std_f1"})
     )
     out["range"] = (out["max_f1"] - out["min_f1"]).round(4)
-    out["std_f1"] = out["std_f1"].fillna(0.0).round(4)
+    out["std_f1"] = out["std_f1"].round(4)
     out["min_f1"] = out["min_f1"].round(4)
     out["max_f1"] = out["max_f1"].round(4)
     return out

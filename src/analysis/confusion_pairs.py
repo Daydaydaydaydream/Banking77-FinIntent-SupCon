@@ -234,12 +234,12 @@ def group_aggregate_over_seeds(
     effect from a reshuffle.
     """
 
-    pair_flags: dict[tuple[str, str], list[bool]] = {}
+    pair_deltas: dict[tuple[str, str], list[int]] = {}
     group_baseline: dict[str, list[int]] = {}
     group_treatment: dict[str, list[int]] = {}
     compared_seeds: list[int] = []
 
-    for seed in seeds:
+    for seed in dict.fromkeys(seeds):
         conf_base = load_confusion(baseline, setting, seed, runs_dir)
         conf_treat = load_confusion(treatment, setting, seed, runs_dir)
         if conf_base is None or conf_treat is None:
@@ -254,9 +254,14 @@ def group_aggregate_over_seeds(
         # number per seed rather than one per declared pair.
         base_by_group: dict[str, int] = {}
         treat_by_group: dict[str, int] = {}
-        for row_base, row_treat in zip(rows_base, rows_treat):
-            pair_flags.setdefault((row_base["label_a"], row_base["label_b"]), []).append(
-                row_treat["bidirectional_total"] < row_base["bidirectional_total"]
+        treat_by_pair = {(r["label_a"], r["label_b"]): r for r in rows_treat}
+        for row_base in rows_base:
+            key = (row_base["label_a"], row_base["label_b"])
+            row_treat = treat_by_pair.get(key)
+            if row_treat is None:
+                continue
+            pair_deltas.setdefault(key, []).append(
+                row_treat["bidirectional_total"] - row_base["bidirectional_total"]
             )
             base_by_group[row_base["group"]] = (
                 base_by_group.get(row_base["group"], 0) + row_base["bidirectional_total"]
@@ -291,8 +296,9 @@ def group_aggregate_over_seeds(
         )
     group_table.sort(key=lambda item: item["delta"])
 
-    consistently_improved = [k for k, flags in pair_flags.items() if all(flags)]
-    consistently_worsened = [k for k, flags in pair_flags.items() if not any(flags)]
+    complete_pairs = {k: ds for k, ds in pair_deltas.items() if len(ds) == len(compared_seeds)}
+    consistently_improved = [k for k, ds in complete_pairs.items() if all(d < 0 for d in ds)]
+    consistently_worsened = [k for k, ds in complete_pairs.items() if all(d > 0 for d in ds)]
     improved = sum(1 for item in group_table if item["improved"])
 
     return {
@@ -303,7 +309,7 @@ def group_aggregate_over_seeds(
         "groups": group_table,
         "groups_improved": improved,
         "groups_total": len(group_table),
-        "pairs_compared": len(pair_flags),
+        "pairs_compared": len(complete_pairs),
         "pairs_consistently_improved": len(consistently_improved),
         "pairs_consistently_worsened": len(consistently_worsened),
         "consistently_improved_labels": [f"{a} <-> {b}" for a, b in consistently_improved],
@@ -363,7 +369,7 @@ def main() -> None:
         print(f"\n=== {baseline} -> {treatment} | {args.setting} | seeds {aggregate['seeds']} ===")
         print(f"  {'group':28s} {'baseline':>9s} {'treatment':>10s} {'delta':>7s}")
         for entry in aggregate["groups"]:
-            mark = "improved" if entry["improved"] else "worsened"
+            mark = "improved" if entry["delta"] < 0 else "worsened" if entry["delta"] > 0 else "unchanged"
             print(
                 f"  {entry['group']:28s} {entry['baseline_mean']:9.1f} "
                 f"{entry['treatment_mean']:10.1f} {entry['delta']:+7.1f}  {mark}"
