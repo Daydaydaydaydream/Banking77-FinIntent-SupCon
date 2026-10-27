@@ -116,6 +116,21 @@ def train_loop(model, optimizer, loader_factory, evaluate, *, arm, protocol, dev
     return history, dict(actual_steps=step,best_step=best_step,best_validation_macro_f1=best_f1,train_seconds=elapsed)
 
 
+def predict_dataset(model, dataset, tokenizer, *, batch_size, num_classes, seed, device, precision):
+    """One shared prediction path for validation, exports and artifact recovery."""
+    model.eval()
+    outputs = []
+    loader = build_loader(dataset, tokenizer, batch_size=batch_size, num_classes=num_classes,
+                          seed=seed, shuffle=False)
+    with torch.no_grad():
+        for batch in loader:
+            with torch.autocast(device_type=device, dtype=torch.bfloat16, enabled=precision == 'bf16'):
+                pooled = model.embed(batch['input_ids'].to(device), batch['attention_mask'].to(device))
+                logits = model.classify(pooled)
+            outputs.append(torch.softmax(logits.float(), dim=1).cpu().numpy())
+    return np.concatenate(outputs)
+
+
 def run(arm, setting, seed, *, protocol, model_path, model_hashes, root, device='auto', save_model=True, smoke=False):
     validate_protocol(protocol)
     if arm not in ARMS: raise ValueError('Unknown arm')
@@ -156,16 +171,9 @@ def run(arm, setting, seed, *, protocol, model_path, model_hashes, root, device=
             # All arms see the same batches, with deterministic reshuffling each epoch.
             return build_loader(datasets[0],tokenizer,batch_size=config['effective_batch_size'],num_classes=len(categories),seed=seed+epoch,shuffle=True,shots_per_class=protocol['shots_per_class'])
         def predict(dataset):
-            model.eval()
-            outputs=[]
-            loader=build_loader(dataset,tokenizer,batch_size=protocol['eval_batch_size'],num_classes=len(categories),seed=seed,shuffle=False)
-            with torch.no_grad():
-                for batch in loader:
-                    with torch.autocast(device_type=device, dtype=torch.bfloat16, enabled=precision['resolved']=='bf16'):
-                        pooled=model.embed(batch['input_ids'].to(device),batch['attention_mask'].to(device))
-                        logits=model.classify(pooled)
-                    outputs.append(torch.softmax(logits.float(),dim=1).cpu().numpy())
-            return np.concatenate(outputs)
+            return predict_dataset(model, dataset, tokenizer, batch_size=protocol['eval_batch_size'],
+                                   num_classes=len(categories), seed=seed, device=device,
+                                   precision=precision['resolved'])
         y_val=encode_labels(val,categories)
         history,extra=train_loop(model,optimizer,loader_factory,lambda _:classification_metrics(y_val,predict(datasets[1]).argmax(1),categories)['macro_f1'],arm=arm,protocol=protocol,device=device,resolved_precision=precision['resolved'])
         artifacts.write_history(history)

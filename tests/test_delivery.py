@@ -149,3 +149,83 @@ class DeliveryTests(unittest.TestCase):
                 with self.assertRaisesRegex(ValueError,'different protocol/model/runtime'): run_controlled.main()
         finally:
             path.write_text(original)
+
+
+    def make_tied_run_copy(self, name):
+        from analysis.audit_artifacts import frame_digest
+        from utils.artifacts import RunArtifacts
+        from utils.controlled_artifacts import file_hashes
+        from utils.metrics import classification_metrics
+        target = self.root/name
+        shutil.copytree(self.runs,target)
+        val = pd.concat([self.frame,self.frame.iloc[:2]],ignore_index=True)
+        splits = (self.frame,val,val,self.categories)
+        for arm in ARMS:
+            directory = target/arm/'5shot/seed42'
+            heads = torch.load(directory/'model/heads.pt',weights_only=True)
+            heads['classifier']['weight'].zero_()
+            heads['classifier']['bias'].zero_()
+            torch.save(heads,directory/'model/heads.pt')
+            (directory/'model/manifest.json').write_text(json.dumps(file_hashes(directory/'model')))
+            config = read_json(directory/'config.json')
+            config.update(validation_rows=len(val),test_rows=len(val),data_fingerprints={
+                k:frame_digest(f) for k,f in [('train',self.frame),('validation',val),('test',val)]})
+            (directory/'config.json').write_text(json.dumps(config))
+            truth = np.array([self.categories.index(c) for c in val.category])
+            old_ids = np.full(len(val),2)
+            old_metrics = classification_metrics(truth,old_ids,self.categories)
+            true_f1 = classification_metrics(truth,np.zeros(len(val),dtype=int),self.categories)['macro_f1']
+            artifact = RunArtifacts(arm,'5shot',42,root=target)
+            scores = np.full((len(val),3),1/3,dtype=np.float32)
+            for filename in ('validation_predictions.csv','predictions.csv'):
+                artifact.write_predictions(val.text.tolist(),truth,scores,self.categories,filename=filename)
+                pred = pd.read_csv(directory/filename)
+                pred['y_pred_id'],pred['y_pred'],pred['top2'],pred['top3'] = 2,self.categories[2],self.categories[1],self.categories[0]
+                pred.to_csv(directory/filename,index=False)
+            artifact.write_confusion(truth,old_ids,self.categories)
+            metrics = read_json(directory/'metrics.json')
+            metrics.update(validation=old_metrics,test=old_metrics,best_step=1,best_validation_macro_f1=true_f1)
+            (directory/'metrics.json').write_text(json.dumps(metrics))
+            history = read_json(directory/'training_history.json')
+            for entry in history:
+                entry['validation_macro_f1'] = true_f1
+            (directory/'training_history.json').write_text(json.dumps(history))
+        return target,splits
+
+    def test_saved_checkpoint_recovery_repairs_ties_without_training(self):
+        from analysis.repair_prediction_ranking import repair
+        target,splits = self.make_tied_run_copy('tied-recovery')
+        with patch('utils.controlled_artifacts.load_splits',return_value=splits):
+            with self.assertRaisesRegex(ValueError,'Selected validation score mismatch'):
+                validate_run(target/'ce/5shot/seed42')
+        with patch('utils.controlled_artifacts.load_splits',return_value=splits), \
+             patch('analysis.repair_prediction_ranking.load_splits',return_value=splits), \
+             patch('supcon.joint.train_loop',side_effect=AssertionError('recovery must not train')), \
+             contextlib.redirect_stdout(io.StringIO()):
+            self.assertEqual(repair(target,seeds=[42],device='cpu'),3)
+            self.assertEqual(repair(target,seeds=[42],device='cpu'),0)
+            build_report(target,seeds=[42])
+        for arm in ARMS:
+            directory = target/arm/'5shot/seed42'
+            self.assertTrue((pd.read_csv(directory/'predictions.csv').y_pred_id==0).all())
+            self.assertEqual(len(list((directory/'ranking_backup').glob('*/metrics.json'))),1)
+            self.assertEqual(read_json(directory/'metrics.json')['ranking_repair']['changes']['validation']['changed_predictions'],8)
+
+    def test_recovery_refuses_unreproduced_history_without_changing_originals(self):
+        from analysis.repair_prediction_ranking import repair
+        target,splits = self.make_tied_run_copy('tied-abort')
+        directory = target/'ce/5shot/seed42'
+        history = read_json(directory/'training_history.json')
+        for entry in history: entry['validation_macro_f1'] = .99
+        (directory/'training_history.json').write_text(json.dumps(history))
+        metrics = read_json(directory/'metrics.json')
+        metrics['best_validation_macro_f1'] = .99
+        (directory/'metrics.json').write_text(json.dumps(metrics))
+        original = (directory/'predictions.csv').read_bytes()
+        with patch('utils.controlled_artifacts.load_splits',return_value=splits), \
+             patch('analysis.repair_prediction_ranking.load_splits',return_value=splits), \
+             contextlib.redirect_stdout(io.StringIO()):
+            with self.assertRaisesRegex(ValueError,'Selected validation score mismatch'):
+                repair(target,seeds=[42],device='cpu')
+        self.assertEqual((directory/'predictions.csv').read_bytes(),original)
+        self.assertFalse((directory/'ranking_backup').exists())

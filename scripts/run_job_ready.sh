@@ -22,6 +22,10 @@ case "${1:-}" in
     python -m run_controlled --protocol configs/controlled_gpu_v2.json --output-dir "$ROOT_OUT" --device cuda --setting 5shot --seed 42 43 44 "${@:2}"
     python -m analysis.controlled_report --root "$ROOT_OUT"
     ;;
+  repair)
+    python -m analysis.repair_prediction_ranking --root "$ROOT_OUT" --device cuda "${@:2}"
+    python -m analysis.controlled_report --root "$ROOT_OUT"
+    ;;
   report)
     python -m analysis.controlled_report --root "$ROOT_OUT"
     ;;
@@ -30,7 +34,7 @@ case "${1:-}" in
       --text "Where is my card?" --text "Why do I have to verify my identity?" "${@:2}"
     ;;
   *)
-    echo 'Usage: bash scripts/run_job_ready.sh {prepare|smoke|train|report|demo} [extra arguments]'
+    echo 'Usage: bash scripts/run_job_ready.sh {prepare|smoke|train|repair|report|demo} [extra arguments]'
     exit 2
     ;;
 esac

@@ -162,7 +162,8 @@ class RunArtifacts:
     ) -> np.ndarray:
         if scores.shape != (len(texts), len(categories)):
             raise ValueError(f"Unexpected score shape {scores.shape}")
-        ranking = np.argsort(-scores, axis=1)
+        # Match np.argmax used for checkpoint selection: smallest class id wins ties.
+        ranking = np.argsort(-scores, axis=1, kind="stable")
         y_pred = ranking[:, 0]
         if filename not in ("predictions.csv", "validation_predictions.csv"):
             raise ValueError("Unsupported predictions filename")

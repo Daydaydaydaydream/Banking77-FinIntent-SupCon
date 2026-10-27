@@ -56,7 +56,9 @@ class IntentPredictor:
                 scores = torch.softmax(logits.float(), dim=1)
                 if not torch.isfinite(scores).all():
                     raise FloatingPointError('Nonfinite prediction scores')
-                values, indices = scores.topk(top_k, dim=1)
+                # Keep the same tie policy as training selection and CSV export.
+                indices = torch.argsort(scores, dim=1, descending=True, stable=True)[:, :top_k]
+                values = scores.gather(1, indices)
                 for text, length, score_row, ids in zip(batch, lengths, values.cpu().tolist(), indices.cpu().tolist()):
                     rows.append(dict(text=text, label=self.categories[ids[0]], truncated=length>self.max_length,
                         top_k=[dict(label=self.categories[i], score=s) for i,s in zip(ids,score_row)]))
