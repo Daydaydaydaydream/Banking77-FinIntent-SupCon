@@ -130,3 +130,8 @@ outputs/**/*.log
 
 # Archived pre-reproducibility runs, kept locally for reference only.
 outputs/_archive_pre_repro/
+
+# Machine-local GPU runs and environment checks.
+outputs/job_ready_gpu*/
+outputs/preflight*.json
+outputs/environment-wsl.txt

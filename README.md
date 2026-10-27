@@ -6,9 +6,27 @@
 
 评估以 Macro-F1 为主，同时使用 per-class F1 和 confusion matrix 检查收益是否真正集中在易混淆 intent pairs；可视化只作为辅助证据。
 
+## RTX 5060 Ti / WSL2 求职收尾运行
+
+已新增 GPU 配置、环境预检、离线推理和正式结果报告。完整安装、下载、失败恢复说明见 [WSL 运行手册](docs/WSL_RUNBOOK.md)。开发机已验证 CPU 流程；GPU 耗时、显存和正式效果待目标机器运行。
+
+安装手册指定的环境并激活后，依次执行：
+
+```bash
+bash scripts/run_job_ready.sh prepare
+bash scripts/run_job_ready.sh smoke
+bash scripts/run_job_ready.sh train
+bash scripts/run_job_ready.sh demo
+```
+
+默认正式范围为 5-shot × CE / CE+SupCon / CE+SupCon+HN × seeds 42/43/44，共 9 组，保存模型与逐条预测。报告位于 `outputs/job_ready_gpu_v2/delivery/REPORT.md`，演示模型按平均验证表现选方法、固定 seed42。完成后即可形成实验项目交付，其余 27 组为可选扩展。
+
 ## 文档
 
 - [项目介绍](docs/PROJECT.md)：研究问题、数据集、方法范围、实验设计与预期产出。
+- [求职项目概览](docs/PROJECT_OVERVIEW.md)：项目定位、已有证据和英文介绍。
+- [本次开发验证](docs/DELIVERY_VALIDATION.md)：已验证范围与待 GPU 验证项。
+- [2026-10-26 状态检查](docs/STATUS_2026-10-26.md)：代码、测试、实验产物及待完成项的本次核验。
 - [后续开发规划](docs/DEVELOPMENT_PLAN.md)：受控实验、结果分析、求职交付与验收标准。
 - [简历与面试说明](docs/CAREER_PROJECT.md)：当前可用表述、数字边界与讲解顺序。
 - [当前实验结果](docs/RESULTS.md)：三种子统计与混淆分析。
@@ -78,6 +96,7 @@ SupCon 在三个少样本设置上一致劣于 BERT，仅在 full 上以不足 1
 2. CE / CE + SupCon / CE + SupCon + HN 统一流程已实现并通过三组 smoke，待执行正式 36 组实验。
 3. 补齐效果与成本表、真实误判案例和训练异常排查说明。
 4. 完成一页项目概览、简历描述与最小复现验证；按算法工程岗位需求补推理演示。
+5. 独立探索 PathPT 启发的类别语义提示：先做同 backbone 的三组 5-shot 对照，当前尚未实现或训练。
 
 详细范围、顺序和验收见 [后续开发规划](docs/DEVELOPMENT_PLAN.md)。各项完成状态以开发规划为准；正式受控实验结果尚未生成。
 

@@ -1,0 +1,6 @@
+# Install torch from the CUDA 12.8 index FIRST (see WSL_RUNBOOK.md).
+-r requirements.txt
+torch==2.10.0
+transformers==4.57.6
+sentence-transformers==3.4.1
+huggingface-hub==0.36.2

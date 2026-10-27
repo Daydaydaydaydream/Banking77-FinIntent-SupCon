@@ -21,6 +21,12 @@ from utils.precision import resolve_precision
 from utils.seed import seed_everything, select_torch_device
 
 ARMS = ('ce', 'ce_supcon', 'ce_supcon_hn')
+IMPLEMENTATION = 'controlled-delivery-v2'
+
+
+def synchronize(device):
+    if device == 'cuda':
+        torch.cuda.synchronize()
 
 
 def joint_loss(logits, projected, labels, arm, *, weight=0.1, temperature=0.1, hn_temperature=0.5):
@@ -39,11 +45,18 @@ def joint_loss(logits, projected, labels, arm, *, weight=0.1, temperature=0.1, h
 
 def validate_protocol(protocol):
     required = {'protocol','selection','max_steps','eval_steps','learning_rate','weight_decay','shots_per_class','max_length','eval_batch_size','projection_dim','supcon_weight','supcon_temperature','hn_temperature','precision'}
-    if set(protocol) != required:
+    optional = {'gradient_checkpointing', 'attention_implementation'}
+    if set(protocol) - optional != required:
         raise ValueError(f'Protocol keys differ: {set(protocol) ^ required}')
     for key in ('max_steps','eval_steps','shots_per_class','max_length','eval_batch_size','projection_dim'):
         if type(protocol[key]) is not int or protocol[key] <= 0:
             raise ValueError(f'{key} must be a positive integer')
+    if protocol.get('attention_implementation', 'eager') not in ('eager', 'sdpa'):
+        raise ValueError('attention_implementation must be eager or sdpa')
+    if type(protocol.get('gradient_checkpointing', False)) is not bool:
+        raise ValueError('gradient_checkpointing must be boolean')
+    if protocol['precision'] not in ('auto', 'fp32', 'bf16'):
+        raise ValueError('Controlled protocol supports auto/fp32/bf16 only')
     if protocol['shots_per_class'] < 2: raise ValueError('shots_per_class must be >= 2')
     for key in ('learning_rate','supcon_weight','supcon_temperature','hn_temperature'):
         if not math.isfinite(protocol[key]) or protocol[key] <= 0: raise ValueError(f'{key} must be finite and positive')
@@ -67,6 +80,7 @@ def train_loop(model, optimizer, loader_factory, evaluate, *, arm, protocol, dev
     """Fixed update budget; validation alone selects the complete model state."""
     step, epoch, best_f1, best_step, best_state = 0, 0, -1., 0, None
     history = []
+    synchronize(device)
     started=time.perf_counter()
     while step < protocol['max_steps']:
         loader=loader_factory(epoch)
@@ -89,12 +103,14 @@ def train_loop(model, optimizer, loader_factory, evaluate, *, arm, protocol, dev
                 f1=evaluate(model)
                 if not math.isfinite(f1): raise FloatingPointError('Nonfinite validation metric')
                 entry['validation_macro_f1']=f1
+                print(f'  step {step}/{protocol["max_steps"]}: loss={float(loss.detach()):.4f}, validation_macro_f1={f1:.4f}', flush=True)
                 if f1>best_f1:
                     best_f1,best_step=f1,step
                     best_state={key:value.detach().cpu().clone() for key,value in model.state_dict().items()}
             history.append(entry)
             if step==protocol['max_steps']: break
         epoch+=1
+    synchronize(device)
     elapsed=time.perf_counter()-started
     model.load_state_dict(best_state)
     return history, dict(actual_steps=step,best_step=best_step,best_validation_macro_f1=best_f1,train_seconds=elapsed)
@@ -108,6 +124,10 @@ def run(arm, setting, seed, *, protocol, model_path, model_hashes, root, device=
     artifacts.write_status('running')
     try:
         seed_info=seed_everything(seed)
+        if torch.cuda.is_available():
+            torch.backends.cudnn.benchmark = False
+            torch.backends.cuda.matmul.allow_tf32 = False
+            torch.backends.cudnn.allow_tf32 = False
         device=select_torch_device(device)
         precision=resolve_precision(protocol['precision'],device)
         if precision['resolved']=='fp16': raise ValueError('Controlled runner supports fp32/bf16 only')
@@ -118,6 +138,7 @@ def run(arm, setting, seed, *, protocol, model_path, model_hashes, root, device=
         fingerprints={key:frame_digest(frame) for key,frame in [('train',train),('validation',val),('test',test)]}
         config=dict(method=arm,setting=setting,seed=seed,protocol=protocol,device=device,precision=precision,seed_info=seed_info,
                     model_name=str(model_path),model_sha256=model_hashes,data_fingerprints=fingerprints,
+                    implementation=IMPLEMENTATION,categories=categories,save_model=save_model,
                     train_rows=len(train),validation_rows=len(val),test_rows=len(test),smoke_only=smoke,
                     effective_batch_size=len(categories)*protocol['shots_per_class'],loss_implementation='negative-mean-one-detached-logsumexp-v2')
         artifacts.write_config(config)
@@ -125,7 +146,11 @@ def run(arm, setting, seed, *, protocol, model_path, model_hashes, root, device=
         tokenizer=AutoTokenizer.from_pretrained(model_path,local_files_only=True)
         frames=[train,val,test]
         datasets=[TextDataset(tokenizer(frame.text.tolist(),truncation=True,max_length=protocol['max_length']),encode_labels(frame,categories)) for frame in frames]
-        model=SupConModel(str(model_path),len(categories),projection_dim=protocol['projection_dim'],local_files_only=True).to(device)
+        model=SupConModel(str(model_path),len(categories),projection_dim=protocol['projection_dim'],local_files_only=True,attn_implementation=protocol.get('attention_implementation','eager')).to(device)
+        if protocol.get('gradient_checkpointing', False):
+            model.encoder.gradient_checkpointing_enable(gradient_checkpointing_kwargs={'use_reentrant': False})
+        if device == 'cuda':
+            torch.cuda.reset_peak_memory_stats()
         optimizer=torch.optim.AdamW(model.parameters(),lr=protocol['learning_rate'],weight_decay=protocol['weight_decay'])
         def loader_factory(epoch):
             # All arms see the same batches, with deterministic reshuffling each epoch.
@@ -136,8 +161,10 @@ def run(arm, setting, seed, *, protocol, model_path, model_hashes, root, device=
             loader=build_loader(dataset,tokenizer,batch_size=protocol['eval_batch_size'],num_classes=len(categories),seed=seed,shuffle=False)
             with torch.no_grad():
                 for batch in loader:
-                    pooled=model.embed(batch['input_ids'].to(device),batch['attention_mask'].to(device))
-                    outputs.append(torch.softmax(model.classify(pooled).float(),dim=1).cpu().numpy())
+                    with torch.autocast(device_type=device, dtype=torch.bfloat16, enabled=precision['resolved']=='bf16'):
+                        pooled=model.embed(batch['input_ids'].to(device),batch['attention_mask'].to(device))
+                        logits=model.classify(pooled)
+                    outputs.append(torch.softmax(logits.float(),dim=1).cpu().numpy())
             return np.concatenate(outputs)
         y_val=encode_labels(val,categories)
         history,extra=train_loop(model,optimizer,loader_factory,lambda _:classification_metrics(y_val,predict(datasets[1]).argmax(1),categories)['macro_f1'],arm=arm,protocol=protocol,device=device,resolved_precision=precision['resolved'])
@@ -146,9 +173,23 @@ def run(arm, setting, seed, *, protocol, model_path, model_hashes, root, device=
         val_pred=artifacts.write_predictions(val.text.tolist(),y_val,val_scores,categories,filename='validation_predictions.csv')
         val_metrics=classification_metrics(y_val,val_pred,categories)
         # Test inference starts only after validation-selected state is restored.
+        # Warm up the same inference path before timing; tokenization is excluded.
+        warmup = build_loader(datasets[2],tokenizer,batch_size=protocol['eval_batch_size'],num_classes=len(categories),seed=seed,shuffle=False)
+        first = next(iter(warmup))
+        with torch.no_grad(), torch.autocast(device_type=device, dtype=torch.bfloat16, enabled=precision['resolved']=='bf16'):
+            model.classify(model.embed(first['input_ids'].to(device), first['attention_mask'].to(device)))
+        synchronize(device)
         started=time.perf_counter()
         scores=predict(datasets[2])
+        synchronize(device)
         extra['test_inference_seconds']=time.perf_counter()-started
+        extra['test_examples_per_second']=len(test)/extra['test_inference_seconds']
+        extra['inference_timing']='warm; excludes tokenizer/model load; includes loader, forward and CPU score transfer'
+        extra['train_timing']='optimizer updates + periodic validation + best-state CPU copies; excludes setup and final export'
+        extra['parameter_count']=sum(p.numel() for p in model.parameters())
+        extra['trainable_parameter_count']=sum(p.numel() for p in model.parameters() if p.requires_grad)
+        extra['cuda_peak_allocated_bytes']=torch.cuda.max_memory_allocated() if device=='cuda' else None
+        extra['cuda_peak_reserved_bytes']=torch.cuda.max_memory_reserved() if device=='cuda' else None
         y_test=encode_labels(test,categories)
         predicted=artifacts.write_predictions(test.text.tolist(),y_test,scores,categories)
         artifacts.write_confusion(y_test,predicted,categories)
@@ -159,6 +200,8 @@ def run(arm, setting, seed, *, protocol, model_path, model_hashes, root, device=
             tokenizer.save_pretrained(artifacts.model_dir)
             model.encoder.config.save_pretrained(artifacts.model_dir)
             (artifacts.model_dir/'categories.json').write_text(json.dumps(categories,indent=2)+'\n')
+            from utils.controlled_artifacts import file_hashes
+            (artifacts.model_dir/'manifest.json').write_text(json.dumps(file_hashes(artifacts.model_dir),indent=2)+'\n')
         artifacts.write_metrics(val_metrics,metrics,{**extra,'smoke_only':smoke})
         artifacts.write_status('completed')
         return dict(method=arm,setting=setting,seed=seed,test_macro_f1=metrics['macro_f1'],**extra)
@@ -171,7 +214,7 @@ def load_saved_model(directory: Path, device='cpu'):
     """Restore a self-contained selected encoder and both task heads."""
     config=json.loads((directory/'config.json').read_text())
     categories=json.loads((directory/'model/categories.json').read_text())
-    model=SupConModel(str(directory/'model'),len(categories),projection_dim=config['protocol']['projection_dim'],local_files_only=True)
+    model=SupConModel(str(directory/'model'),len(categories),projection_dim=config['protocol']['projection_dim'],local_files_only=True,attn_implementation=config['protocol'].get('attention_implementation','eager'))
     heads=torch.load(directory/'model/heads.pt',map_location='cpu',weights_only=True)
     model.projection.load_state_dict(heads['projection'])
     model.classifier.load_state_dict(heads['classifier'])

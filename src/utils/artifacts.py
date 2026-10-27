@@ -52,7 +52,18 @@ def environment_info() -> dict[str, Any]:
             packages[name] = importlib.metadata.version(name)
         except importlib.metadata.PackageNotFoundError:
             packages[name] = None
+    hardware = {}
+    try:
+        import torch
+        hardware = {"cuda_available": torch.cuda.is_available(), "cuda_runtime": torch.version.cuda}
+        if torch.cuda.is_available():
+            hardware.update(gpu=torch.cuda.get_device_name(0), capability=list(torch.cuda.get_device_capability(0)),
+                            total_memory_bytes=torch.cuda.get_device_properties(0).total_memory,
+                            cudnn=torch.backends.cudnn.version())
+    except ImportError:
+        pass
     return {
+        "hardware": hardware,
         "python": sys.version,
         "platform": platform.platform(),
         "packages": packages,

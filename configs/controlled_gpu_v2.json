@@ -1,0 +1,18 @@
+{
+  "protocol": "controlled-gpu-v2-delivery",
+  "selection": "predeclared shared settings; validation selects checkpoint; no test-based tuning",
+  "max_steps": 300,
+  "eval_steps": 50,
+  "learning_rate": 0.00005,
+  "weight_decay": 0.01,
+  "shots_per_class": 2,
+  "max_length": 64,
+  "eval_batch_size": 64,
+  "projection_dim": 128,
+  "supcon_weight": 0.1,
+  "supcon_temperature": 0.1,
+  "hn_temperature": 0.5,
+  "precision": "bf16",
+  "attention_implementation": "sdpa",
+  "gradient_checkpointing": true
+}
