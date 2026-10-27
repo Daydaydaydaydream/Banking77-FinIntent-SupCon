@@ -17,6 +17,17 @@ python3.11 --version
 
 安装缺少的 Python/venv 时，按所用 Ubuntu 版本的包源准备 Python 3.11；本项目不会替你修改系统或驱动。
 
+### Windows 检出后的换行报错
+
+若出现 `set: pipefail: invalid option name`，尤其报错前缀或行序异常，通常是 Windows 检出/编辑产生的 CRLF 回车。仓库已通过 `.gitattributes` 固定 shell 脚本为 LF；当前已有文件可在 WSL 项目根目录执行一次：
+
+```bash
+sed -i 's/\r$//' scripts/run_job_ready.sh
+bash -n scripts/run_job_ready.sh
+```
+
+然后继续原来的步骤。运行时使用 `bash scripts/run_job_ready.sh prepare` 等命令，不要用 `sh`；该脚本使用 Bash 的数组参数和 `pipefail`。修复换行后不需要删除环境、模型或训练结果。
+
 ## 2. 安装隔离环境
 
 以下命令在项目根目录执行。已有 Conda 环境也可使用，但保持 Python 3.11 并按下面固定核心版本安装。

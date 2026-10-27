@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# Run with Bash in WSL; keep Unix (LF) line endings.
 # Run from any directory; activate the documented Python environment first.
 set -euo pipefail
 cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.."
