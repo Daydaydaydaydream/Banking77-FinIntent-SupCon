@@ -1,0 +1,10 @@
+{
+  "run_dir": "../ce_supcon/5shot/seed42",
+  "method": "ce_supcon",
+  "setting": "5shot",
+  "seed": 42,
+  "rule": "method with highest mean validation Macro-F1; fixed smallest requested seed; ties use CE, SupCon, HN order",
+  "validation_mean": 0.6790260119563326,
+  "test_used_for_selection": false,
+  "note": "one demo checkpoint, not an ensemble or the reported multi-seed mean"
+}

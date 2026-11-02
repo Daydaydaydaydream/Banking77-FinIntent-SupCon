@@ -132,6 +132,21 @@ outputs/**/*.log
 outputs/_archive_pre_repro/
 
 # Machine-local GPU runs and environment checks.
+# The formal 5-shot run keeps its text artifacts in the repository: delivery
+# report, per-run configs, metrics, training history, per-example predictions
+# and confusion matrices. Model weights (~5 GB) and the failed first attempt
+# stay local; re-include the retry run explicitly because the directory rule
+# above would otherwise hide every file inside it.
 outputs/job_ready_gpu*/
+!outputs/job_ready_gpu_v2_retry/
+!outputs/job_ready_gpu_v2_retry/**
+outputs/job_ready_gpu_v2_retry/**/*.safetensors
+outputs/job_ready_gpu_v2_retry/**/*.pt
+outputs/job_ready_gpu_v2_retry/**/*.bin
+outputs/job_ready_gpu_v2_retry/**/*.ckpt
+outputs/job_ready_gpu_v2_retry/**/*.pth
 outputs/preflight*.json
 outputs/environment-wsl.txt
+
+# Local delivery bundle (git archive snapshot of a commit, built on demand).
+dist/

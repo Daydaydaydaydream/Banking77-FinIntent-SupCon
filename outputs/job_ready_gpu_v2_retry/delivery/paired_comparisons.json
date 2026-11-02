@@ -1,0 +1,50 @@
+[
+  {
+    "baseline": "ce",
+    "treatment": "ce_supcon",
+    "setting": "5shot",
+    "seeds": 3,
+    "mean_delta": 0.018199888418328314,
+    "std_delta": 0.007803972705161954,
+    "positive_seeds": 3,
+    "negative_seeds": 0,
+    "per_seed": [
+      {
+        "seed": 42,
+        "delta": 0.02446767648347603
+      },
+      {
+        "seed": 43,
+        "delta": 0.020672964562303164
+      },
+      {
+        "seed": 44,
+        "delta": 0.009459024209205746
+      }
+    ]
+  },
+  {
+    "baseline": "ce_supcon",
+    "treatment": "ce_supcon_hn",
+    "setting": "5shot",
+    "seeds": 3,
+    "mean_delta": 0.0005266004982537043,
+    "std_delta": 0.003210911056391489,
+    "positive_seeds": 2,
+    "negative_seeds": 1,
+    "per_seed": [
+      {
+        "seed": 42,
+        "delta": 0.0021598875582934385
+      },
+      {
+        "seed": 43,
+        "delta": 0.0025925304446065
+      },
+      {
+        "seed": 44,
+        "delta": -0.003172616508138826
+      }
+    ]
+  }
+]

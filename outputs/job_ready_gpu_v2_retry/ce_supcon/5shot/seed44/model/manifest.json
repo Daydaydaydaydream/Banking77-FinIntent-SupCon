@@ -1,0 +1,10 @@
+{
+  "categories.json": "e58114f0c41107b65df9821b4c928e9630278216ecb12f48ba2b6301c3f6d251",
+  "config.json": "5a6a418ca1f69b5a98076cd8394f6328c31fb9bdda3db317e243168007070bdb",
+  "heads.pt": "cdbe99c877aefb78e5974cb6bfb16a2e1f4bcfbdb829537abbd7795e366402be",
+  "model.safetensors": "ed09adb62014267f064d9df9e4b9589215b04679bb3708a0b3decd153baf799d",
+  "special_tokens_map.json": "b6d346be366a7d1d48332dbc9fdf3bf8960b5d879522b7799ddba59e76237ee3",
+  "tokenizer.json": "8406160b692103eb0af606ffd0d7963678491aa8719a131fd165927e64eb5416",
+  "tokenizer_config.json": "1f92c93d2e31974acffab86d48e80a9357acb18c68346c5472ef1d12c72d5d77",
+  "vocab.txt": "07eced375cec144d27c900241f3e339478dec958f92fddbc551f295c992038a3"
+}

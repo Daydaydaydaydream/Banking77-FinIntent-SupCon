@@ -131,3 +131,44 @@
 - 已完成运行：60
 - 标记为塌缩：0
 - 塌缩运行：无
+
+受控 5-shot 另有 9 组（见第 6 节），与本节的 60 组分别汇总，不混入同一张表。
+
+## 6. 受控联合训练正式结果（RTX 5060 Ti，5-shot，9 组）
+
+2026-10-27 在 RTX 5060 Ti 16GB / WSL2（CUDA 13.0、torch 2.14.0、BF16、SDPA、梯度检查点）上完成 5-shot × CE / CE + SupCon / CE + SupCon + HN × seeds 42/43/44，共 9 组。三组共享 BERT-base 编码器、类平衡采样（每批每类 2 条，有效 batch 154）、学习率 5e-5、固定 300 次更新、每 50 步验证、最大长度 64，按验证 Macro-F1 恢复最佳状态后才计算测试指标；只有损失函数不同。
+
+### 6.1 效果与成本
+
+| 方法 | Test Macro-F1 mean ± std | Validation Macro-F1 mean | 训练+周期验证秒数 | 测试条/秒 | 峰值 allocated GiB |
+|---|---:|---:|---:|---:|---:|
+| CE | 0.6831 ± 0.0112 | 0.6608 | 83.9 | 3448.7 | 2.13 |
+| CE + SupCon | 0.7013 ± 0.0050 | 0.6790 | 84.2 | 3442.0 | 2.14 |
+| CE + SupCon + HN | 0.7019 ± 0.0034 | 0.6767 | 84.3 | 3452.7 | 2.14 |
+
+`train_seconds` 含训练、周期验证和最佳状态 CPU 拷贝，不含模型加载、分词与最终保存；测试吞吐经过预热，含数据装载、前向与分数回传，不含分词。峰值显存是该次训练与评估中 PyTorch 分配的峰值，不等于系统总占用。
+
+### 6.2 配对差值
+
+| Comparison | Setting | seeds | mean delta | worst seed | 正向种子 |
+|---|---|---:|---:|---:|---:|
+| CE + SupCon − CE | 5shot | 3 | +0.0182 ± 0.0078 | +0.0095 | 3/3 |
+| CE + SupCon + HN − CE + SupCon | 5shot | 3 | +0.0005 ± 0.0032 | −0.0032 | 2/3 |
+
+对比损失的增量在三个种子下方向一致；HN 的增量在 seed 44 转负，不成立。三个种子只能说明当前划分与协议下的方向，不足以支持普遍性结论。
+
+### 6.3 预声明易混淆类别对
+
+沿用第 4 节的 29 个类别对，统计 CE → CE + SupCon 的双向误判数变化（三种子均值）：
+
+- 没有任何类别对在三个种子上同时改善；2 对同时恶化：`top_up_failed ↔ top_up_reverted`（+2.33）、`Refund_not_showing_up ↔ request_refund`（+2.67）。
+- 29 对合计误判数 +2.0 次，即 Macro-F1 增益没有集中在预声明的易混淆类别上。
+- 组级合计（负值为误判减少）：`exchange_rate` −3.00、`balance_not_updated` −1.33、`top_up_state` −1.33；`virtual_card` 持平；`declined_transaction` +0.67、`card_delivery` +2.00、`identity_verification` +2.33、`refund` +2.67。
+
+### 6.4 产物与局限
+
+- 产物根目录 `outputs/job_ready_gpu_v2_retry/`：`protocol.json`（固定协议、环境、模型哈希）、`summary.csv`、`runs.csv`、`paired_comparisons.json`、`delivery/`（报告、效果/成本表、逐类变化、29 对混淆、真实错误案例、`selected_model.json`）。每组另有 `config.json`、`env.json`、`metrics.json`、`training_history.json`、逐条与验证集预测、混淆矩阵。
+- 模型权重（约 5 GB）只保留在运行机器上，不进入 Git；仓库保留可复算指标的文本产物。
+- 首次运行在验证分数一致性检查处失败：BF16 下并列最高分类分数时，导出与选模使用了不同并列规则。修复统一了并列规则，并用保留的 checkpoint 重导出，未重新训练、未改变选模规则、未放宽容差；正式产物位于带 `_retry` 的目录。
+- 本节只覆盖 5-shot、3 个种子、9 组；与第 1 节的 60 组训练预算不同，两组数字不可逐行相减。
+- 配置只按预声明协议与验证规则选择；测试集结果此前已被查看，本节不描述为从未接触测试集的确认性研究。

@@ -1,2 +1,6 @@
 # Bash scripts must retain Unix line endings in Windows and WSL checkouts.
 *.sh text eol=lf
+
+# Formal run artifacts are byte-for-byte evidence (predictions, metrics,
+# configs). Never let a Windows checkout rewrite their line endings.
+outputs/job_ready_gpu_v2_retry/** -text

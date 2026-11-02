@@ -8,7 +8,7 @@
 
 ## RTX 5060 Ti / WSL2 求职收尾运行
 
-已新增 GPU 配置、环境预检、离线推理和正式结果报告。完整安装、下载、失败恢复说明见 [WSL 运行手册](docs/WSL_RUNBOOK.md)。开发机已验证 CPU 流程；GPU 耗时、显存和正式效果待目标机器运行。
+已新增 GPU 配置、环境预检、离线推理和正式结果报告。完整安装、下载、失败恢复说明见 [WSL 运行手册](docs/WSL_RUNBOOK.md)。9 组 5-shot 正式对照已在 RTX 5060 Ti 16GB / WSL2 上跑完，结果见下节。
 
 安装手册指定的环境并激活后，依次执行：
 
@@ -19,17 +19,32 @@ bash scripts/run_job_ready.sh train
 bash scripts/run_job_ready.sh demo
 ```
 
-默认正式范围为 5-shot × CE / CE+SupCon / CE+SupCon+HN × seeds 42/43/44，共 9 组，保存模型与逐条预测。报告位于 `outputs/job_ready_gpu_v2/delivery/REPORT.md`，演示模型按平均验证表现选方法、固定 seed42。完成后即可形成实验项目交付，其余 27 组为可选扩展。
+默认正式范围为 5-shot × CE / CE+SupCon / CE+SupCon+HN × seeds 42/43/44，共 9 组，保存模型与逐条预测。报告位于 [`outputs/job_ready_gpu_v2_retry/delivery/REPORT.md`](outputs/job_ready_gpu_v2_retry/delivery/REPORT.md)，演示模型按平均验证表现选方法、固定 seed42。其余 27 组为可选扩展。
+
+### 5-shot 受控结果（9 组，2026-10-27）
+
+同一 BERT-base 编码器、同一类平衡采样（每批每类 2 条，有效 batch 154）、同一 300 次更新与验证选模规则，只改损失函数；精度 BF16，注意力 SDPA，梯度检查点开启。测试集 Macro-F1 为 seeds 42/43/44 的 `mean ± std`：
+
+| 方法 | Test Macro-F1 | 训练+周期验证秒数 | 测试条/秒 | 峰值 allocated GiB |
+|---|---:|---:|---:|---:|
+| CE | 0.6831 ± 0.0112 | 83.9 | 3448.7 | 2.13 |
+| CE + SupCon | 0.7013 ± 0.0050 | 84.2 | 3442.0 | 2.14 |
+| CE + SupCon + HN | 0.7019 ± 0.0034 | 84.3 | 3452.7 | 2.14 |
+
+配对差值：CE + SupCon − CE 为 +0.0182，三个种子全部为正；CE + SupCon + HN − CE + SupCon 为 +0.0005，2/3 为正、seed 44 为负，因此本协议下 HN 的边际增益不成立。增益也没有集中在预声明的 29 对易混淆类别上：没有任何一对在三个种子上同时改善，2 对同时恶化，类别对误差合计 +2.0 次。逐类指标、29 对混淆表与真实错误案例见交付目录下的 CSV/JSON。
+
+受控 9 组与下文历史 60 组不可逐行相减：受控组统一了编码器、采样和更新预算，而历史矩阵中 BERT 为全参数微调、两阶段 SupCon 冻结编码器，训练预算也不同。
 
 ## 文档
 
 - [项目介绍](docs/PROJECT.md)：研究问题、数据集、方法范围、实验设计与预期产出。
 - [求职项目概览](docs/PROJECT_OVERVIEW.md)：项目定位、已有证据和英文介绍。
-- [本次开发验证](docs/DELIVERY_VALIDATION.md)：已验证范围与待 GPU 验证项。
+- [本次开发验证](docs/DELIVERY_VALIDATION.md)：已验证范围与目标机器运行结果。
 - [2026-10-26 状态检查](docs/STATUS_2026-10-26.md)：代码、测试、实验产物及待完成项的本次核验。
 - [后续开发规划](docs/DEVELOPMENT_PLAN.md)：受控实验、结果分析、求职交付与验收标准。
 - [简历与面试说明](docs/CAREER_PROJECT.md)：当前可用表述、数字边界与讲解顺序。
 - [当前实验结果](docs/RESULTS.md)：三种子统计与混淆分析。
+- [受控 5-shot 交付报告](outputs/job_ready_gpu_v2_retry/delivery/REPORT.md)：9 组效果/成本、配对差值与演示模型选择。
 - [Version 1 基线实验报告](docs/FIRST_EXPERIMENT_REPORT.md)：12 组基线结果、模型行为、局限与下一轮方案。
 
 ## 当前状态
@@ -82,6 +97,8 @@ SupCon 在三个少样本设置上一致劣于 BERT，仅在 full 上以不足 1
 
 完整数据见 [`docs/RESULTS.md`](docs/RESULTS.md)，所有数字由 `outputs/runs/` 下的 `metrics.json` 重新生成。
 
+受控 5-shot 9 组给出不同方向的证据：统一协议后 CE + SupCon 比 CE 高 1.82 个百分点且三个种子全部为正，说明在当前预算下对比损失有增量；但同一协议下 HN 只多 0.05 个百分点且 2/3 为正，不成立。两组数字的预算不同，不能互相替代，也不能据受控组较低的绝对分推断历史方案更强。
+
 ## 产物复核
 
 60 组配置和混淆矩阵复算通过；历史逐条预测及训练数据指纹缺失，无法完整追溯。重建划分无 train/validation 归一化文本重叠，但与官方 test 分别有 19/6 条唯一归一化文本交集。详见 [审计报告](docs/ARTIFACT_AUDIT.md)。
@@ -93,12 +110,12 @@ SupCon 在三个少样本设置上一致劣于 BERT，仅在 full 上以不足 1
 ## 后续规划
 
 1. 复核运行产物与当前文档，统一训练预算、验证数据和方案比较口径。
-2. CE / CE + SupCon / CE + SupCon + HN 统一流程已实现并通过三组 smoke，待执行正式 36 组实验。
-3. 补齐效果与成本表、真实误判案例和训练异常排查说明。
+2. CE / CE + SupCon / CE + SupCon + HN 统一流程已实现；5-shot 9 组正式实验已完成，其余 27 组为可选扩展。
+3. 逐类指标、29 对混淆表和真实误判案例已随 9 组交付生成并复核。
 4. 完成一页项目概览、简历描述与最小复现验证；按算法工程岗位需求补推理演示。
 5. 独立探索 PathPT 启发的类别语义提示：先做同 backbone 的三组 5-shot 对照，当前尚未实现或训练。
 
-详细范围、顺序和验收见 [后续开发规划](docs/DEVELOPMENT_PLAN.md)。各项完成状态以开发规划为准；正式受控实验结果尚未生成。
+详细范围、顺序和验收见 [后续开发规划](docs/DEVELOPMENT_PLAN.md)。各项完成状态以开发规划为准；5-shot 受控 9 组已生成正式结果，完整 36 组尚未运行。
 
 ## 复现命令
 

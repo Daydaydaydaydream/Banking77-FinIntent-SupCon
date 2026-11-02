@@ -1,0 +1,7 @@
+baseline,treatment,setting,seed,delta
+ce,ce_supcon,5shot,42,0.02446767648347603
+ce,ce_supcon,5shot,43,0.020672964562303164
+ce,ce_supcon,5shot,44,0.009459024209205746
+ce_supcon,ce_supcon_hn,5shot,42,0.0021598875582934385
+ce_supcon,ce_supcon_hn,5shot,43,0.0025925304446065
+ce_supcon,ce_supcon_hn,5shot,44,-0.003172616508138826
