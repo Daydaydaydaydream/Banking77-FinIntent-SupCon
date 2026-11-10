@@ -6,6 +6,14 @@
 
 评估以 Macro-F1 为主，同时使用 per-class F1 和 confusion matrix 检查收益是否真正集中在易混淆 intent pairs；可视化只作为辅助证据。
 
+## 最终研究报告
+
+[中文在线阅读](docs/lncs_report/report_zh.md) · [中文 PDF](docs/lncs_report/report_zh.pdf) · [English report](docs/lncs_report/report_en.md) · [English PDF](docs/lncs_report/report_en.pdf)
+
+每类仅用 5 条训练样本时，SetFit 在训练方案比较中取得最高的平均测试 Macro-F1（75.00%）。在单独的 BERT 受控实验中，加入 SupCon 后，三个种子的 Macro-F1 均有提升，均值从 68.31% 升至 70.13%。进一步加入难负例加权（HN）后，平均仅再提高约 0.053 个百分点，收益随种子波动。两组实验均使用额外验证标签选模。
+
+中英文 LaTeX 源文件和插图随报告提供。在装有 XeLaTeX、LNCS 所需宏包和 Fandol 字体的环境中，可运行 `bash docs/lncs_report/build.sh` 重建 PDF。当前方法流程图为 AI 辅助参考稿，课程提交前仍需作者亲自重绘。
+
 ## RTX 5060 Ti / WSL2 求职收尾运行
 
 已新增 GPU 配置、环境预检、离线推理和正式结果报告。完整安装、下载、失败恢复说明见 [WSL 运行手册](docs/WSL_RUNBOOK.md)。9 组 5-shot 正式对照已在 RTX 5060 Ti 16GB / WSL2 上跑完，结果见下节。
@@ -31,7 +39,7 @@ bash scripts/run_job_ready.sh demo
 | CE + SupCon | 0.7013 ± 0.0050 | 84.2 | 3442.0 | 2.14 |
 | CE + SupCon + HN | 0.7019 ± 0.0034 | 84.3 | 3452.7 | 2.14 |
 
-配对差值：CE + SupCon − CE 为 +0.0182，三个种子全部为正；CE + SupCon + HN − CE + SupCon 为 +0.0005，2/3 为正、seed 44 为负，因此本协议下 HN 的边际增益不成立。增益也没有集中在预声明的 29 对易混淆类别上：没有任何一对在三个种子上同时改善，2 对同时恶化，类别对误差合计 +2.0 次。逐类指标、29 对混淆表与真实错误案例见交付目录下的 CSV/JSON。
+配对差值：CE + SupCon − CE 为 +0.0182，三个种子全部为正；CE + SupCon + HN − CE + SupCon 为 +0.0005，2/3 为正、seed 44 为负，因此本协议下 HN 的边际增益不成立。在预声明的 29 对易混淆类别中，加入 SupCon 后有 1 对在三个种子上均改善、2 对均恶化。进一步加入 HN 后，两项计数均为 0。两次比较中，29 对类别的双向误判总数均平均增加 2.0 次。逐类指标、29 对混淆表与真实错误案例见交付目录下的 CSV/JSON。
 
 受控 9 组与下文历史 60 组不可逐行相减：受控组统一了编码器、采样和更新预算，而历史矩阵中 BERT 为全参数微调、两阶段 SupCon 冻结编码器，训练预算也不同。
 

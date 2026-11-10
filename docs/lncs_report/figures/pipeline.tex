@@ -1,0 +1,10 @@
+% AI-assisted reference diagram. Students must redraw it for course submission.
+\begin{tikzpicture}[node distance=6mm and 5mm,box/.style={draw,rounded corners,align=center,font=\small,text width=31mm,minimum height=9mm},arr/.style={-{Stealth},thick}]
+\node[box,text width=44mm] (input) {77 classes $\times$ 2 examples\\Tokenize and pad ($L\leq64$)};
+\node[box,text width=44mm,at={(0,-1.6)}] (bert) {Shared BERT-base\\Masked mean pooling $\mathbf h$};
+\node[box,at={(-2.3,-3.4)}] (ce) {Linear classifier\\Cross-entropy};
+\node[box,at={(2.3,-3.4)}] (proj) {Linear--ReLU--Linear\\Normalize $\mathbf z$};
+\node[box,at={(2.3,-5.2)}] (sc) {SupCon or HN\\$\tau=0.1$, $\tau_h=0.5$};
+\node[box,text width=44mm,at={(-2.3,-6.6)}] (loss) {Joint loss: CE $+\,0.1$ SC/HN\\Update encoder and heads};
+\draw[arr] (input)--(bert);\draw[arr] (bert)--(ce);\draw[arr,dashed] (bert)--(proj);\draw[arr,dashed] (proj)--(sc);\draw[arr] (ce)--(loss);\draw[arr,dashed] (sc)|-(loss);
+\end{tikzpicture}
